@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import {
   fitCanvas,
+  getSignalIntensity,
   prefersReducedMotion,
   registerDraw,
   wave,
@@ -67,7 +68,8 @@ export function TapeTransport() {
       ctx.beginPath();
       const drive = 0.35 + Math.min(1, Math.abs(spool) * 0.9) * 0.75;
       for (let x = lx; x <= rx; x += 1.5) {
-        const y = bandY - wave(x - spool * 260, t, 3.1) * (bandH * 0.42) * drive;
+        const y =
+          bandY - wave(x - spool * 260, t, 3.1) * (bandH * 0.42) * drive * getSignalIntensity();
         if (x === lx) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }

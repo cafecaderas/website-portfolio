@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { siteConfig } from "@/lib/content/site";
 import { Header } from "@/components/chrome/Header";
 import { Footer } from "@/components/chrome/Footer";
+import { TweakBarLoader } from "@/components/tweaks/TweakBarLoader";
 import "./globals.css";
 
 const archivoBlack = Archivo_Black({
@@ -50,6 +51,7 @@ export default function RootLayout({
           </main>
           <Footer />
         </MotionConfig>
+        <TweakBarLoader />
       </body>
     </html>
   );

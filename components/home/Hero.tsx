@@ -33,7 +33,7 @@ export function Hero() {
           <defs>
             <path id="tapeArc" d="M 40 214 Q 600 78 1160 214" />
           </defs>
-          <text fontSize={118}>
+          <text>
             <textPath
               href="#tapeArc"
               startOffset="50%"

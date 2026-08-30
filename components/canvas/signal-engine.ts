@@ -20,6 +20,21 @@ let nextId = 0;
 let running = false;
 let t0 = 0;
 
+/**
+ * Global amplitude multiplier for every scope — the Tweak Bar's
+ * "Signal intensity" control. Read at draw time, so no re-registration
+ * is needed when it changes.
+ */
+let signalIntensity = 1;
+
+export function setSignalIntensity(value: number) {
+  signalIntensity = value;
+}
+
+export function getSignalIntensity(): number {
+  return signalIntensity;
+}
+
 function loop(now: number) {
   const t = (now - t0) / 1000;
   for (const entry of entries) {
@@ -112,7 +127,7 @@ export function drawScope(
     ctx.fillStyle = "rgba(184,188,194,0.45)";
     for (let i = 0; i < n; i++) {
       const x = i * 4;
-      const a = Math.abs(wave(x * 1.4, t * 0.6, seed)) * mid * 0.9;
+      const a = Math.min(mid, Math.abs(wave(x * 1.4, t * 0.6, seed)) * mid * 0.9 * signalIntensity);
       ctx.fillRect(x, mid - a, 2, a * 2);
     }
     ctx.fillStyle = "rgba(57,255,106,0.9)";
@@ -123,7 +138,7 @@ export function drawScope(
   }
 
   const mid = h / 2;
-  const ampPx = mid * amp;
+  const ampPx = mid * amp * signalIntensity;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.shadowColor = "rgba(57,255,106,0.75)";
