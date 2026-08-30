@@ -1,16 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { siteConfig } from "@/lib/landing/site";
+import { Archivo_Black, Inter, Special_Elite } from "next/font/google";
+import { MotionConfig } from "framer-motion";
+import { siteConfig } from "@/lib/content/site";
+import { Header } from "@/components/chrome/Header";
+import { Footer } from "@/components/chrome/Footer";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const archivoBlack = Archivo_Black({
+  variable: "--font-display",
+  weight: "400",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-body",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
+  display: "swap",
+});
+
+const specialElite = Special_Elite({
+  variable: "--font-mach",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,9 +40,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
+      className={`${archivoBlack.variable} ${inter.variable} ${specialElite.variable}`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body>
+        <MotionConfig reducedMotion="user">
+          <Header />
+          <main id="main-content" tabIndex={-1}>
+            {children}
+          </main>
+          <Footer />
+        </MotionConfig>
+      </body>
     </html>
   );
 }
