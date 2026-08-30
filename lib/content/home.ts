@@ -8,7 +8,7 @@ export const heroContent = {
   metaLeft: {
     role: "CREATIVE TECHNOLOGIST",
     tags: "DESIGNER · ENGINEER · DJ",
-    location: "BOGOTÁ / REMOTE",
+    location: "ARIZONA / MEDELLIN / BOGOTÁ / REMOTE",
   },
   metaRight: {
     version: "SITE V0.1",
@@ -32,7 +32,7 @@ export const sidesContent = {
     tagLabel: "A-SIDE",
     tagSuffix: "— SOUND",
     title: "Where it started",
-    body: "Ten years of tracking, mixing and playing records taught me the thing that actually transfers: how something feels in the first four seconds, and what to cut so the rest lands.",
+    body: "15 years of tracking, mixing and playing records taught me the thing that actually transfers: how something feels in the first four seconds, and what to cut so the rest lands.",
     tags: ["MIXING", "MASTERING", "LIVE SETS", "FIELD RECORDING"],
     scopeAmp: 0.62,
   },

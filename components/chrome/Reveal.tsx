@@ -1,0 +1,24 @@
+"use client";
+
+import { motion } from "framer-motion";
+import type { ReactNode } from "react";
+
+/**
+ * Scroll-triggered reveal — fades/slides content in once as it enters the
+ * viewport. Inherits reduced-motion handling from the app-wide
+ * MotionConfig reducedMotion="user" wrapper (layout.tsx), same as every
+ * other Framer Motion usage in this codebase.
+ */
+export function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}

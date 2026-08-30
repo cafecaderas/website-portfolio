@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { heroContent } from "@/lib/content/home";
+import { MagneticButton } from "@/components/chrome/MagneticButton";
+import { ShaderHero } from "./ShaderHero";
 import { TapeTransport } from "./TapeTransport";
 
 export function Hero() {
@@ -7,6 +9,7 @@ export function Hero() {
 
   return (
     <section className="hero">
+      <ShaderHero />
       <div className="wrap">
         <div className="hero-meta">
           <div>
@@ -33,7 +36,7 @@ export function Hero() {
           <defs>
             <path id="tapeArc" d="M 40 214 Q 600 78 1160 214" />
           </defs>
-          <text fontSize={118}>
+          <text>
             <textPath
               href="#tapeArc"
               startOffset="50%"
@@ -51,13 +54,17 @@ export function Hero() {
           {tagline.after}
         </p>
         <div className="hero-cta">
-          <Link href={ctaPrimary.href} className="btn solid">
-            {ctaPrimary.label}
-          </Link>
-          <Link href={ctaSecondary.href} className="btn">
-            <span className="led-dot animate__animated animate__pulse animate__infinite" />
-            {ctaSecondary.label}
-          </Link>
+          <MagneticButton>
+            <Link href={ctaPrimary.href} className="btn solid">
+              {ctaPrimary.label}
+            </Link>
+          </MagneticButton>
+          <MagneticButton>
+            <Link href={ctaSecondary.href} className="btn">
+              <span className="led-dot animate__animated animate__pulse animate__infinite" />
+              {ctaSecondary.label}
+            </Link>
+          </MagneticButton>
         </div>
       </div>
 
