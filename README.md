@@ -151,8 +151,19 @@ Concrete choices made while scaffolding V1 (this section grows over time — see
 - **V1 sections:** Home, Portfolio (index + `[slug]` project detail), Lab (index), About, Contact.
 - **Content status:** Home/About/Contact/Lab currently use lorem-ipsum placeholder copy. Real copy and visual identity are deferred to a dedicated design Q&A. The original Cafe Caderas DJ landing page content (copy + links) was preserved, not deleted — it now lives as a real project entry at `/portfolio/cafe-caderas`.
 - **Animation:** Framer Motion and animate.css are installed in addition to the existing zero-dependency `AnimateIn` scroll-reveal component. Framer Motion isn't wired into any component yet — installed and ready for the design phase.
-- **Stack versions (pinned for stability):** Next.js 16.3.3, React/React DOM 19.2.8, Tailwind CSS 4.3.3, ESLint 10.9.1 / eslint-config-next 16.3.3. TypeScript is pinned to **6.0.3** rather than the newest 7.x line, because `typescript-eslint` (pulled in by `eslint-config-next`) only supports `typescript >=4.8.4 <6.1.0` as of this writing — TS 7 would break linting.
-- **GitHub push:** intentionally not automated — needs a confirmed remote/repo before pushing.
+- **Stack versions (pinned for stability):** Next.js 16.3.3, React/React DOM 19.2.8, Tailwind CSS 4.3.3. TypeScript is pinned to **6.0.3** rather than the newest 7.x line, because `typescript-eslint` (pulled in by `eslint-config-next`) only supports `typescript >=4.8.4 <6.1.0` as of this writing — TS 7 would break linting. ESLint is pinned to **9.39.5** rather than the newest 10.x line for the same reason: `eslint-plugin-react` (also pulled in by `eslint-config-next`) only supports `eslint <=9.7`.
+- **GitHub:** repo created at `github.com/cafecaderas/website-portfolio` (public), initial V1 scaffold pushed to `main`.
+
+### V2 — Cafe Caderas design system (branch `design1`)
+
+Full visual/structural rebuild against a locked brand system and a working reference mockup, replacing the V1 lorem-ipsum scaffold entirely. This is a snapshot of what's built, not a claim that the visual direction is permanent — the brand system stays open to iteration; the lab is the point.
+
+- **Routes:** four total — `/`, `/works` (client + commissioned work), `/lab` (experiments), `/about` (About **and** Contact merged onto one route, since the nav is fixed at exactly four items). `/portfolio` and `/contact` from V1 are gone.
+- **Content model:** one typed array (`lib/content/projects.ts`) holds both Works and Lab entries; a project's `section` field decides placement, not its medium. Sample catalog content (Nocturne Studio, Patchbay, Library Organizer, etc.) is shipped as concrete placeholder data per the no-lorem rule — swap-ready for the real project list.
+- **Canvas engine:** one shared `requestAnimationFrame` loop (`components/canvas/signal-engine.ts`) drives every oscilloscope, the header hairline pulse, and the scroll-spooled tape transport on Home — not one loop per canvas. Under `prefers-reduced-motion: reduce`, the loop never starts; each canvas draws a single static frame instead.
+- **Framer Motion + animate.css** (installed in V1, unused until now) both got real jobs: Framer Motion drives the two shared-layout slides (active nav underline, active Works filter pill) that plain CSS handles clumsily; animate.css drives the ambient phosphor "live" pulse on LED status dots — cheap, continuous CSS keyframes instead of spinning up JS or canvas for something that simple. `MotionConfig reducedMotion="user"` wraps the app so those two animations also respect the OS setting.
+- **Fonts:** Archivo Black / Inter / Special Elite via `next/font/google` (self-hosted) rather than the spec's `<link>` tags — same visual result, avoids FOUC, matches how fonts were already wired here.
+- **Known TODOs in the content:** SoundCloud URL, GitHub URL, and CV PDF link are placeholders (`href="#"`, marked `TODO:` in `lib/content/site.ts`) — Instagram and the Cafe Caderas domain link are real.
 
 ## Change Rule
 
