@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Cafe Caderas — locked V3 design system
+<!-- # Cafe Caderas — locked V3 design system
 
 Quick reference for the coding agent. The design system is locked — re-parameterize it via the existing CSS custom properties in `app/globals.css`; don't invent new ones. Full history lives in `README.md`'s Decisions Log.
 
@@ -28,4 +28,4 @@ Quick reference for the coding agent. The design system is locked — re-paramet
 - **Motion study** — `TapeTransport`'s tuning constants (the `0.09` scroll-lerp in `components/home/TapeTransport/index.tsx`, the drag inertia decay, etc.) exposed as draggable sliders, to tune by feel before hard-coding a value.
 - **Copy deck** — every real string on the site set in the real fonts at real sizes, so copy gets written before it lands in `lib/content/`.
 
-If any of these get built as a published Claude Artifact rather than an in-repo route: it's just a URL, and URLs here rot — an artifact can be unpublished, and a republish from a session that doesn't own it fails outright. Prefer an in-repo `/dev/...` route for anything meant to stick around; an Artifact is fine for a quick one-off.
+If any of these get built as a published Claude Artifact rather than an in-repo route: it's just a URL, and URLs here rot — an artifact can be unpublished, and a republish from a session that doesn't own it fails outright. Prefer an in-repo `/dev/...` route for anything meant to stick around; an Artifact is fine for a quick one-off. -->
