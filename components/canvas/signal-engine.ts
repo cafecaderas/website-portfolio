@@ -143,6 +143,19 @@ export function wave(x: number, t: number, seed: number): number {
   return v;
 }
 
+/**
+ * Audio and scroll/mouse energy combine additively (each one's deviation
+ * from its own baseline of 1, summed), not multiplicatively — two
+ * simultaneously-excited sources would otherwise compound into an
+ * enormous, broken-looking multiplier. Additive still lets either one
+ * dominate and reach a dramatic swing on its own, capped at a ceiling
+ * that lets the trace run "hot" (occasionally clipping the canvas edge,
+ * on theme for an analog signal) without flying off into nonsense.
+ */
+function combinedEnergy(t: number): number {
+  return Math.min(4, 1 + (getAudioEnergy(t) - 1) + (getInteractionEnergy(t) - 1));
+}
+
 export type ScopeMode = "wave" | "bars";
 
 export function drawScope(
@@ -174,7 +187,7 @@ export function drawScope(
     ctx.fillStyle = "rgba(184,188,194,0.45)";
     for (let i = 0; i < n; i++) {
       const x = i * 4;
-      const a = Math.min(mid, Math.abs(wave(x * 1.4, t * 0.6, seed)) * mid * 0.9 * signalIntensity * getAudioEnergy(t) * getInteractionEnergy(t));
+      const a = Math.min(mid, Math.abs(wave(x * 1.4, t * 0.6, seed)) * mid * 0.9 * signalIntensity * combinedEnergy(t));
       ctx.fillRect(x, mid - a, 2, a * 2);
     }
     ctx.fillStyle = phosphorRgba(0.9);
@@ -185,7 +198,11 @@ export function drawScope(
   }
 
   const mid = h / 2;
-  const ampPx = mid * amp * signalIntensity * getAudioEnergy(t) * getInteractionEnergy(t);
+  // Allowed to run a little hot past the canvas half-height — a clipped
+  // peak reads as an analog signal pushed into the red, not a bug — but
+  // capped well short of the full combinedEnergy() ceiling so it doesn't
+  // fly off into unreadable territory.
+  const ampPx = mid * amp * signalIntensity * Math.min(2.4, combinedEnergy(t));
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.shadowColor = phosphorRgba(0.75);

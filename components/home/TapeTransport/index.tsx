@@ -8,7 +8,7 @@ import {
   registerDraw,
   type CanvasMetrics,
 } from "@/components/canvas/signal-engine";
-import { getMouseEnergy, getScrollVelocity, getSiteElapsedSeconds } from "@/components/canvas/interaction-engine";
+import { getInteractionEnergy, getSiteElapsedSeconds } from "@/components/canvas/interaction-engine";
 import { computeGeometry, drawDeck, hitTestReel } from "./draw";
 
 /** Shortest signed angular distance from b to a, handling the ±π wrap. */
@@ -109,8 +109,7 @@ export function TapeTransport() {
       }
 
       const autoAngle = spool * 7.2 + t * 0.35;
-      const scrollKick = Math.min(1, Math.abs(getScrollVelocity(t)) * 0.04);
-      const driveEnergy = getSignalIntensity() * getMouseEnergy(t) * (1 + scrollKick);
+      const driveEnergy = getSignalIntensity() * getInteractionEnergy(t);
 
       drawDeck(metrics, {
         t,

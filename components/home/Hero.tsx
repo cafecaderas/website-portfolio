@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { heroContent } from "@/lib/content/home";
 import { MagneticButton } from "@/components/chrome/MagneticButton";
+import { onHeroColorMove } from "./heroColor";
 import { ShaderHero } from "./ShaderHero";
 import { TapeTransport } from "./TapeTransport";
 
@@ -8,8 +11,9 @@ export function Hero() {
   const { metaLeft, metaRight, logotype, tagline, ctaPrimary, ctaSecondary } = heroContent;
 
   return (
-    <section className="hero">
+    <section className="hero" onPointerMove={onHeroColorMove}>
       <ShaderHero />
+      <span className="hero-tune-hint mono">MOVE TO TUNE SIGNAL</span>
       <div className="wrap">
         <div className="hero-meta">
           <div>
