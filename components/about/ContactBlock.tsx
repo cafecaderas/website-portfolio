@@ -1,17 +1,13 @@
 import { social } from "@/lib/content/site";
+import { contactContent } from "@/lib/content/about";
 
 export function ContactBlock() {
   return (
     <div className="contact">
       <div className="l">
-        <p className="big">
-          Tell me what you&apos;re making and what it&apos;s supposed to feel
-          like.
-        </p>
+        <p className="big">{contactContent.bigStatement}</p>
         <p className="lede" style={{ fontSize: "14.5px" }}>
-          Best first message: what it is, when you need it, and one thing
-          you&apos;ve seen that got it right. I answer everything within a
-          couple of days.
+          {contactContent.helperText}
         </p>
         <div style={{ marginTop: 22 }}>
           <a className="btn solid" href={`mailto:${social.email}`}>

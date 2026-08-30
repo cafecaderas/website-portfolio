@@ -1,3 +1,4 @@
+import { aboutPageContent } from "@/lib/content/about";
 import { NowPastNext } from "@/components/about/NowPastNext";
 import { CvTable } from "@/components/about/CvTable";
 import { ContactBlock } from "@/components/about/ContactBlock";
@@ -6,18 +7,13 @@ export default function AboutPage() {
   return (
     <section className="pagehead">
       <div className="wrap">
-        <p className="eyebrow">ABOUT + CONTACT</p>
+        <p className="eyebrow">{aboutPageContent.eyebrow}</p>
         <h1 className="h1">
-          Cafe Caderas is
+          {aboutPageContent.titleLine1}
           <br />
-          <em>a system, not a résumé.</em>
+          <em>{aboutPageContent.titleLine2}</em>
         </h1>
-        <p className="lede">
-          Creative technologist, designer and musician. I make websites and
-          digital experiences for people who care how things feel — which
-          usually means people who came from music, food, or somewhere else
-          with a room tone.
-        </p>
+        <p className="lede">{aboutPageContent.lede}</p>
 
         <NowPastNext />
         <CvTable />

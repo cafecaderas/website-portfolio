@@ -1,12 +1,5 @@
 import type { Project } from "@/lib/content/types";
-
-const CATEGORY_LABEL: Record<string, string> = {
-  code: "CODE",
-  dj: "DJ",
-  audio: "AUDIO",
-  photo: "PHOTO",
-  proto: "PROTO",
-};
+import { labCategoryLabel } from "@/lib/content/lab";
 
 /**
  * 22 segments, varying heights (deterministic — no randomness, so this
@@ -35,7 +28,7 @@ export function LabModuleGrid({ projects }: { projects: Project[] }) {
         <article className="mod" key={project.slug}>
           <div className="mod-hd">
             <span className="id mono">{project.index}</span>
-            <span className="fm">{CATEGORY_LABEL[project.category] ?? project.category.toUpperCase()}</span>
+            <span className="fm">{labCategoryLabel[project.category] ?? project.category.toUpperCase()}</span>
           </div>
           <div className="mod-body">
             <h3>{project.title}</h3>

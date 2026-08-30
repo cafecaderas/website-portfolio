@@ -1,32 +1,35 @@
 import Link from "next/link";
+import { heroContent } from "@/lib/content/home";
 import { TapeTransport } from "./TapeTransport";
 
 export function Hero() {
+  const { metaLeft, metaRight, logotype, tagline, ctaPrimary, ctaSecondary } = heroContent;
+
   return (
     <section className="hero">
       <div className="wrap">
         <div className="hero-meta">
           <div>
-            CREATIVE TECHNOLOGIST
+            {metaLeft.role}
             <br />
-            <em>DESIGNER · ENGINEER · DJ</em>
+            <em>{metaLeft.tags}</em>
             <br />
-            BOGOTÁ / REMOTE
+            {metaLeft.location}
           </div>
           <div className="r">
-            SITE V0.1
+            {metaRight.version}
             <br />
-            aSide: Sound
+            {metaRight.aSide}
             <br />
-            bSide: Systems
+            {metaRight.bSide}
             <br />
-            <em>REC. 03:12AM</em>
+            <em>{metaRight.timestamp}</em>
           </div>
         </div>
       </div>
 
       <div className="arcwrap">
-        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label="Cafe Caderas">
+        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label={logotype}>
           <defs>
             <path id="tapeArc" d="M 40 214 Q 600 78 1160 214" />
           </defs>
@@ -38,20 +41,22 @@ export function Hero() {
               textLength={1030}
               lengthAdjust="spacingAndGlyphs"
             >
-              CAFE CADERAS
+              {logotype}
             </textPath>
           </text>
         </svg>
         <p className="hero-line">
-          BUILDING DIGITAL <b>+</b> VISUAL EXPERIENCES
+          {tagline.before}
+          <b>{tagline.emphasis}</b>
+          {tagline.after}
         </p>
         <div className="hero-cta">
-          <Link href="/works" className="btn solid">
-            VIEW WORKS
+          <Link href={ctaPrimary.href} className="btn solid">
+            {ctaPrimary.label}
           </Link>
-          <Link href="/lab" className="btn">
+          <Link href={ctaSecondary.href} className="btn">
             <span className="led-dot animate__animated animate__pulse animate__infinite" />
-            ENTER THE LAB
+            {ctaSecondary.label}
           </Link>
         </div>
       </div>

@@ -1,30 +1,15 @@
 import Link from "next/link";
-
-const CELLS = [
-  {
-    k: "BUILDING",
-    v: "A signal-routing tool that plays back in the browser",
-    t: "RUNNING",
-  },
-  {
-    k: "LEARNING",
-    v: "TypeScript, properly this time — types before tricks",
-    t: "IN PROGRESS",
-  },
-  {
-    k: "EXPLORING",
-    v: "Type that redraws itself from an audio signal",
-    t: "WEIRD",
-  },
-] as const;
+import { labCurrentlyContent } from "@/lib/content/home";
 
 export function LabCurrently() {
+  const { eyebrow, cells, ctaLabel } = labCurrentlyContent;
+
   return (
     <section className="band">
       <div className="wrap">
-        <p className="eyebrow">LAB — CURRENTLY</p>
+        <p className="eyebrow">{eyebrow}</p>
         <div className="labstrip">
-          {CELLS.map((cell) => (
+          {cells.map((cell) => (
             <div className="labcell" key={cell.k}>
               <div className="k">{cell.k}</div>
               <div className="v">{cell.v}</div>
@@ -38,7 +23,7 @@ export function LabCurrently() {
         <div style={{ marginTop: 22 }}>
           <Link href="/lab" className="btn">
             <span className="led-dot animate__animated animate__pulse animate__infinite" />
-            ENTER THE LAB
+            {ctaLabel}
           </Link>
         </div>
       </div>

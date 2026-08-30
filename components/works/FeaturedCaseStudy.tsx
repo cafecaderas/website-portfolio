@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Scope } from "@/components/canvas/Scope";
 import { getProjectBySlug } from "@/lib/content/projects";
+import { featuredCaseStudyContent } from "@/lib/content/works";
 
 export function FeaturedCaseStudy() {
-  const project = getProjectBySlug("nocturne-studio");
+  const { slug, chipLabel, tags, ctaLabel, readouts, scopeAmp } = featuredCaseStudyContent;
+  const project = getProjectBySlug(slug);
   if (!project) return null;
 
   return (
@@ -11,29 +13,31 @@ export function FeaturedCaseStudy() {
       <div className="txt">
         <span className="chip live">
           <span className="led-dot animate__animated animate__pulse animate__infinite" />
-          CASE STUDY 01
+          {chipLabel}
         </span>
         <h3 style={{ marginTop: 16 }}>{project.title}</h3>
         <p className="lede" style={{ fontSize: "14.5px" }}>
           {project.caseStudy?.body}
         </p>
         <div className="chips">
-          <span className="chip">WEBSITE</span>
-          <span className="chip">ART DIRECTION</span>
-          <span className="chip">NEXT.JS</span>
-          <span className="chip">2026</span>
+          {tags.map((tag) => (
+            <span className="chip" key={tag}>
+              {tag}
+            </span>
+          ))}
         </div>
         <div style={{ marginTop: 22 }}>
           <Link className="btn" href={`/works/${project.slug}`}>
-            READ CASE STUDY →
+            {ctaLabel}
           </Link>
         </div>
       </div>
       <div className="vis">
-        <Scope amp={0.4} />
+        <Scope amp={scopeAmp} />
         <span className="rd">
-          <span>BOOKINGS +240%</span>
-          <span>0.6s FIRST PAINT</span>
+          {readouts.map((readout) => (
+            <span key={readout}>{readout}</span>
+          ))}
         </span>
       </div>
     </div>
