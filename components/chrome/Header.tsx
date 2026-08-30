@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { nav, siteConfig } from "@/lib/content/site";
 import { HeaderSignal } from "./HeaderSignal";
+import { ScrollProgress } from "./ScrollProgress";
+import { SignalToggle } from "./SignalToggle";
 import { SkipLink } from "./SkipLink";
 
 export function Header() {
@@ -19,6 +21,7 @@ export function Header() {
             {siteConfig.name}
             <sup>®</sup>
           </Link>
+          <SignalToggle />
           <nav className="nav" aria-label="Primary">
             {nav.map((item) => {
               const active = pathname === item.href;
@@ -43,6 +46,7 @@ export function Header() {
           </nav>
         </div>
         <HeaderSignal />
+        <ScrollProgress />
       </header>
     </>
   );

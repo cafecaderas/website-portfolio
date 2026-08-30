@@ -2,17 +2,18 @@
 @import "animate.css";
 
 /* ==========================================================================
-   CAFE CADERAS — DESIGN TOKENS (locked brand system, v2)
-   Phosphor green is a SIGNAL, not a color: oscilloscope traces, LED
-   status dots, meter peaks, the header hairline pulse. It never
-   appears as body text, a heading, a border, a button fill, or a
-   hover state. Rust does everything an accent color would normally do.
+   CAFE CADERAS — DESIGN TOKENS (locked brand system, v4)
+   Phosphor is the ONE signal color: oscilloscope traces, LED status
+   dots, meter peaks, the header hairline pulse, the shader hero glow,
+   AND the hover/accent color (--rust-lit) — all linked, all derived
+   from --phosphor, so one Tweak Bar control drives every "live" surface
+   at once. Rust stays a plain neutral gray, unrelated to phosphor.
    ========================================================================== */
 :root {
   /* ground + surfaces — primary, tweakable */
-  --tape: #14110f;
-  --tape-2: #1b1714;
-  --rule: #332d27;
+  --tape: #0d0d0d;
+  --tape-2: #030303;
+  --rule: #000000;
 
   /* ground + surfaces — derived, follow the primaries above via
      color-mix() so the grayscale hierarchy stays coherent even when
@@ -21,45 +22,51 @@
   --rule-soft: color-mix(in srgb, var(--rule) 80%, var(--tape) 20%);
 
   /* ink — primary, tweakable */
-  --paper: #f6f1e7;
-  --steel: #b8bcc2;
+  --paper: #ffffff;
+  --steel: #d6d6d6;
 
   /* ink — derived from --steel, same reasoning as above */
   --steel-dim: color-mix(in srgb, var(--steel) 70%, var(--tape) 30%);
   --steel-faint: color-mix(in srgb, var(--steel) 40%, var(--tape) 60%);
 
-  /* signal + accent */
-  --phosphor: #39ff6a;
-  --rust: #b5502e;
-  --rust-lit: #d06438;
+  /* signal + accent — primary, tweakable */
+  --phosphor: #ff0000;
+  --rust: #666666;
+
+  /* hover/accent, derived from --phosphor — not directly exposed, so
+     the Tweak Bar can never pin it independently of the signal color. */
+  --rust-lit: color-mix(in srgb, var(--phosphor) 65%, var(--paper) 35%);
 
   --display: var(--font-display), "Arial Black", system-ui, sans-serif;
   --body: var(--font-body), system-ui, -apple-system, sans-serif;
+  --serif: var(--font-serif), Georgia, serif;
   --mach: var(--font-mach), "Courier New", monospace;
+  --artistic: var(--font-artistic), cursive;
   --lcd: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --pad: clamp(20px, 4.4vw, 56px);
-  --maxw: 1240px;
+  --pad: 12px;
+  --maxw: 1300px;
   --hdr: 62px;
-  --band-gap: clamp(46px, 7vw, 88px);
+  --band-gap: 116px;
 
   --animate-duration: 1.8s;
   --transition-base: 200ms;
-  --motion-speed: 1;
+  --motion-speed: 1.5;
 
-  /* Tweak Bar surface-level controls — all default to the locked
-     brand system's implicit values (sharp corners, 1px hairlines,
-     1:1 type/tracking scale) until the panel overrides them. */
+  /* Tweak Bar surface-level controls — locked defaults now reflect the
+     exported v3 combo (sharper type, wider tracking, hairline borders). */
   --radius: 0px;
-  --border-w: 1px;
-  --type-scale: 1;
-  --tracking-scale: 1;
+  --border-w: 0.5px;
+  --type-scale: 1.1;
+  --tracking-scale: 1.6;
 }
 
 @theme inline {
   --color-tape: var(--tape);
   --color-paper: var(--paper);
   --color-rust: var(--rust);
+  --color-rust-lit: var(--rust-lit);
+  --color-steel: var(--steel);
   --color-phosphor: var(--phosphor);
   --font-sans: var(--body);
   --font-mono: var(--lcd);
@@ -104,6 +111,28 @@ a {
 .mono {
   font-family: var(--lcd);
   font-variant-numeric: tabular-nums;
+}
+
+/* ---------- placeholder imagery ---------- */
+.ph-img {
+  position: relative;
+  overflow: hidden;
+  background: var(--tape-2);
+}
+.ph-img img {
+  filter: grayscale(0.2) contrast(1.05);
+}
+.ph-img-tag {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  z-index: 1;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--paper);
+  background: rgba(0, 0, 0, 0.62);
+  padding: 3px 6px;
+  pointer-events: none;
 }
 
 /* ---------- accessibility ---------- */
@@ -161,6 +190,28 @@ a {
   font-size: 8px;
   vertical-align: super;
   color: var(--steel-faint);
+}
+.signal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: var(--border-w) solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 9.5px;
+  letter-spacing: calc(0.16em * var(--tracking-scale));
+  color: var(--steel-faint);
+  transition: color var(--transition-base), border-color var(--transition-base);
+}
+.signal-toggle:hover {
+  color: var(--steel);
+  border-color: var(--steel-faint);
+}
+.signal-toggle[aria-pressed="true"] {
+  color: var(--paper);
+  border-color: var(--rust-lit);
 }
 .nav {
   display: flex;
@@ -327,6 +378,14 @@ section.band {
   font-style: normal;
   color: var(--paper);
 }
+.shader-hero {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .arcwrap {
   position: relative;
   margin-top: 8px;
@@ -375,6 +434,19 @@ section.band {
   display: block;
   width: 100%;
   height: clamp(180px, 26vw, 270px);
+  cursor: grab;
+  touch-action: none;
+}
+.transport .sides-live {
+  display: flex;
+  gap: 12px;
+}
+.transport .side-label {
+  font-family: var(--artistic);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: var(--phosphor);
+  transition: opacity 0.15s linear;
 }
 .transport .rd {
   position: absolute;
@@ -544,10 +616,19 @@ section.band {
   gap: 6px;
 }
 .row .ttl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   font-size: clamp(18px, 2.3vw, 26px);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.15;
+}
+.row-thumb {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: var(--border-w) solid var(--rule);
 }
 .row .sub {
   display: block;
@@ -627,7 +708,7 @@ section.band {
   align-items: start;
 }
 .statement {
-  font-family: var(--display);
+  font-family: var(--serif);
   font-size: clamp(1.35rem, 2.9vw, calc(2.05rem * var(--type-scale)));
   line-height: 1.18;
   letter-spacing: -0.02em;
@@ -746,6 +827,11 @@ section.band {
   position: relative;
   min-height: 250px;
 }
+.feature .vis .ph-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+}
 .feature .vis canvas {
   display: block;
   width: 100%;
@@ -806,6 +892,8 @@ section.band {
   margin-top: 26px;
 }
 .mod {
+  position: relative;
+  overflow: hidden;
   border: var(--border-w) solid var(--rule);
   border-radius: var(--radius);
   background: linear-gradient(180deg, #1d1917, #141110);
@@ -833,6 +921,10 @@ section.band {
   font-size: 9.5px;
   letter-spacing: 0.2em;
   color: var(--rust);
+}
+.mod-photo {
+  height: 120px;
+  border-bottom: var(--border-w) solid var(--rule-soft);
 }
 .mod-body {
   padding: 15px 13px 17px;
@@ -890,6 +982,12 @@ section.band {
   margin-top: 26px;
   overflow: hidden;
 }
+.nowbar .cover {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-right: var(--border-w) solid var(--rule);
+}
 .nowbar .lab {
   padding: 0 16px;
   font-family: var(--mach);
@@ -925,6 +1023,32 @@ section.band {
 /* ==========================================================================
    ABOUT + CONTACT
    ========================================================================== */
+.about-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 28px;
+}
+.logo-slot {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  border: var(--border-w) solid var(--rule);
+  background: var(--tape-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--steel-faint);
+}
+@media (max-width: 640px) {
+  .about-head {
+    flex-direction: column;
+  }
+}
+
 .npn {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -974,6 +1098,37 @@ section.band {
 }
 .npn li.hi {
   color: var(--paper);
+}
+
+.rack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+  margin-top: 30px;
+}
+.rack-ch {
+  border: var(--border-w) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--tape-2);
+  padding: 18px;
+}
+.rack-ch .k {
+  font-family: var(--mach);
+  font-size: 10px;
+  letter-spacing: calc(0.2em * var(--tracking-scale));
+  color: var(--rust-lit);
+  margin-bottom: 10px;
+}
+.rack-ch .v {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--steel);
+  margin: 0 0 14px;
+}
+.rack-ch .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .cv {
@@ -1050,7 +1205,7 @@ section.band {
   justify-content: center;
 }
 .contact .big {
-  font-family: var(--display);
+  font-family: var(--serif);
   font-size: clamp(1.3rem, 2.7vw, calc(2rem * var(--type-scale)));
   letter-spacing: -0.02em;
   line-height: 1.15;

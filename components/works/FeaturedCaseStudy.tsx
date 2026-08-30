@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Scope } from "@/components/canvas/Scope";
+import { PlaceholderImage } from "@/components/chrome/PlaceholderImage";
 import { getProjectBySlug } from "@/lib/content/projects";
 import { featuredCaseStudyContent } from "@/lib/content/works";
 
@@ -33,6 +34,12 @@ export function FeaturedCaseStudy() {
         </div>
       </div>
       <div className="vis">
+        <PlaceholderImage
+          src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1000&q=70"
+          alt="Studio placeholder photo for this case study"
+          sizes="(max-width: 880px) 100vw, 45vw"
+          showTag={false}
+        />
         <Scope amp={scopeAmp} />
         <span className="rd">
           {readouts.map((readout) => (

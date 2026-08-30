@@ -6,6 +6,7 @@ import type { Project, ProjectCategory } from "@/lib/content/types";
 import { worksPageContent, workFilters } from "@/lib/content/works";
 import { WorkRows } from "./WorkRows";
 import { FeaturedCaseStudy } from "./FeaturedCaseStudy";
+import { Reveal } from "@/components/chrome/Reveal";
 
 type FilterKey = ProjectCategory | "all";
 
@@ -53,12 +54,16 @@ export function WorksPageClient({ projects }: { projects: Project[] }) {
 
       <section style={{ paddingBottom: "clamp(46px, 7vw, 88px)" }}>
         <div className="wrap">
-          <FeaturedCaseStudy />
-          <WorkRows
-            projects={projects}
-            isHidden={(p) => active !== "all" && p.category !== active}
-            className="works-rows"
-          />
+          <Reveal>
+            <FeaturedCaseStudy />
+          </Reveal>
+          <Reveal>
+            <WorkRows
+              projects={projects}
+              isHidden={(p) => active !== "all" && p.category !== active}
+              className="works-rows"
+            />
+          </Reveal>
         </div>
       </section>
     </>

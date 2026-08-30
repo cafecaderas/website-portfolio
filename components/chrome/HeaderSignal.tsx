@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { fitCanvas, prefersReducedMotion, registerDraw, type CanvasMetrics } from "@/components/canvas/signal-engine";
+import { fitCanvas, phosphorRgba, prefersReducedMotion, registerDraw, type CanvasMetrics } from "@/components/canvas/signal-engine";
 
 /**
  * The header hairline: a single phosphor pulse travelling left→right on
- * a loop. This is the site's heartbeat and the only always-on green.
+ * a loop. This is the site's heartbeat and has a switch for always-on signal color.
  */
 export function HeaderSignal() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -21,13 +21,13 @@ export function HeaderSignal() {
       if (!metrics) return;
       const { ctx, w, h } = metrics;
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "rgba(57,255,106,0.14)";
+      ctx.fillStyle = phosphorRgba(0.14);
       ctx.fillRect(0, 0, w, h);
       const x = (t * 150) % (w + 180) - 90;
       const gradient = ctx.createLinearGradient(x - 90, 0, x + 90, 0);
-      gradient.addColorStop(0, "rgba(57,255,106,0)");
-      gradient.addColorStop(0.5, "rgba(57,255,106,0.95)");
-      gradient.addColorStop(1, "rgba(57,255,106,0)");
+      gradient.addColorStop(0, phosphorRgba(0));
+      gradient.addColorStop(0.5, phosphorRgba(0.95));
+      gradient.addColorStop(1, phosphorRgba(0));
       ctx.fillStyle = gradient;
       ctx.fillRect(x - 90, 0, 180, h);
     };

@@ -2,9 +2,9 @@
 
 export const aboutPageContent = {
   eyebrow: "ABOUT + CONTACT",
-  titleLine1: "Cafe Caderas is",
-  titleLine2: "a system, not a résumé.",
-  lede: "Creative technologist, designer and musician. I make websites and digital experiences for people who care how things feel — which usually means people who came from music, food, or somewhere else with a room tone.",
+  titleLine1: "CAFE CADERAS IS A",
+  titleLine2: "CREATIVE TECHNOLOGIST",
+  lede: "Engineer, Designer, DJ and Musician. I make websites and digital experiences for people who care how things feel. Which usually means quality people + good signal paths.",
 } as const;
 
 export const nowPastNext = [
@@ -33,6 +33,47 @@ export const nowPastNext = [
     ],
   },
 ] as const;
+
+export const capabilitiesContent = {
+  eyebrow: "CAPABILITIES — SIGNAL CHAIN",
+  channels: [
+    {
+      label: "WEB DEVELOPMENT",
+      body: "Sites and interfaces that ship — React, Next.js, TypeScript.",
+      tags: ["REACT", "NEXT.JS", "TYPESCRIPT"],
+    },
+    {
+      label: "CREATIVE DEVELOPMENT",
+      body: "Real-time graphics and interactive scenes — WebGL, Three.js, shaders.",
+      tags: ["WEBGL", "THREE.JS", "SHADERS"],
+    },
+    {
+      label: "AUDIO",
+      body: "Sound as an interface, not just a file — Web Audio API, Tone.js.",
+      tags: ["WEB AUDIO API", "TONE.JS", "DSP"],
+    },
+    {
+      label: "VISUAL",
+      body: "Canvas, motion, and video work that carries the same signal.",
+      tags: ["CANVAS", "ANIMATION", "VIDEO"],
+    },
+    {
+      label: "SYSTEMS",
+      body: "The plumbing behind the interface — APIs, databases, architecture.",
+      tags: ["APIS", "DATABASES", "ARCHITECTURE"],
+    },
+    {
+      label: "AI",
+      body: "APIs, agents, and creative tooling — used where they earn their place.",
+      tags: ["APIS", "AGENTS", "CREATIVE TOOLING"],
+    },
+    {
+      label: "PROFESSIONAL ENGINEERING",
+      body: "The craft under all of the above — Git, testing, deployment.",
+      tags: ["TYPESCRIPT", "GIT", "TESTING", "DEPLOYMENT"],
+    },
+  ],
+} as const;
 
 export const cvHeading = {
   label: "CV — CONTEXT, NOT ARCHITECTURE",

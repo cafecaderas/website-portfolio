@@ -6,7 +6,9 @@ import {
   RANGE_TOKENS,
   DISPLAY_FONTS,
   BODY_FONTS,
+  SERIF_FONTS,
   MACH_FONTS,
+  ARTISTIC_FONTS,
   PRESETS,
   defaultTweakState,
   SIGNAL_INTENSITY_DEFAULT,
@@ -68,13 +70,19 @@ function applyState(state: TweakState) {
 
   const display = DISPLAY_FONTS.find((f) => f.id === state.displayFont) ?? DISPLAY_FONTS[0];
   const body = BODY_FONTS.find((f) => f.id === state.bodyFont) ?? BODY_FONTS[0];
+  const serif = SERIF_FONTS.find((f) => f.id === state.serifFont) ?? SERIF_FONTS[0];
   const mach = MACH_FONTS.find((f) => f.id === state.machFont) ?? MACH_FONTS[0];
+  const artistic = ARTISTIC_FONTS.find((f) => f.id === state.artisticFont) ?? ARTISTIC_FONTS[0];
   ensureFontLoaded(display);
   ensureFontLoaded(body);
+  ensureFontLoaded(serif);
   ensureFontLoaded(mach);
+  ensureFontLoaded(artistic);
   root.setProperty("--display", display.cssValue);
   root.setProperty("--body", body.cssValue);
+  root.setProperty("--serif", serif.cssValue);
   root.setProperty("--mach", mach.cssValue);
+  root.setProperty("--artistic", artistic.cssValue);
 }
 
 function mergeState(base: TweakState, partial: Partial<TweakState>): TweakState {
@@ -90,7 +98,7 @@ function randomFrom<T>(list: T[]): T {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-const SHUFFLE_HUE_IDS = ["tape", "tape-2", "paper", "steel", "rust", "rust-lit", "rule"];
+const SHUFFLE_HUE_IDS = ["tape", "tape-2", "paper", "steel", "rust", "rule"];
 
 function shuffleState(current: TweakState): TweakState {
   const delta = Math.random() * 360;
@@ -116,7 +124,9 @@ function shuffleState(current: TweakState): TweakState {
     signalIntensity,
     displayFont: randomFrom(DISPLAY_FONTS).id,
     bodyFont: randomFrom(BODY_FONTS).id,
+    serifFont: randomFrom(SERIF_FONTS).id,
     machFont: randomFrom(MACH_FONTS).id,
+    artisticFont: randomFrom(ARTISTIC_FONTS).id,
   };
 }
 
@@ -176,10 +186,14 @@ export function TweakBar() {
     const fontLines: string[] = [];
     const display = DISPLAY_FONTS.find((f) => f.id === state.displayFont);
     const body = BODY_FONTS.find((f) => f.id === state.bodyFont);
+    const serif = SERIF_FONTS.find((f) => f.id === state.serifFont);
     const mach = MACH_FONTS.find((f) => f.id === state.machFont);
-    if (display && display.id !== "archivo-black") fontLines.push(`Display: ${display.label}`);
+    const artistic = ARTISTIC_FONTS.find((f) => f.id === state.artisticFont);
+    if (display && display.id !== "bebas-neue") fontLines.push(`Display: ${display.label}`);
     if (body && body.id !== "inter") fontLines.push(`Body: ${body.label}`);
-    if (mach && mach.id !== "special-elite") fontLines.push(`Labels: ${mach.label}`);
+    if (serif && serif.id !== "playfair-display") fontLines.push(`Serif: ${serif.label}`);
+    if (mach && mach.id !== "jetbrains-mono") fontLines.push(`Labels: ${mach.label}`);
+    if (artistic && artistic.id !== "pacifico") fontLines.push(`Artistic: ${artistic.label}`);
 
     const parts = [
       "/* Tweak Bar export — paste into :root in app/globals.css to lock in */",
@@ -252,8 +266,10 @@ export function TweakBar() {
 
           <Section title="Typography">
             <FontRow label="Display" options={DISPLAY_FONTS} value={state.displayFont} onChange={(id) => update({ displayFont: id })} />
-            <FontRow label="Body" options={BODY_FONTS} value={state.bodyFont} onChange={(id) => update({ bodyFont: id })} />
-            <FontRow label="Labels" options={MACH_FONTS} value={state.machFont} onChange={(id) => update({ machFont: id })} />
+            <FontRow label="Body (sans)" options={BODY_FONTS} value={state.bodyFont} onChange={(id) => update({ bodyFont: id })} />
+            <FontRow label="Serif" options={SERIF_FONTS} value={state.serifFont} onChange={(id) => update({ serifFont: id })} />
+            <FontRow label="Labels (mono)" options={MACH_FONTS} value={state.machFont} onChange={(id) => update({ machFont: id })} />
+            <FontRow label="Artistic" options={ARTISTIC_FONTS} value={state.artisticFont} onChange={(id) => update({ artisticFont: id })} />
             <RangeRow
               label="Display type scale"
               token={rangeToken("type-scale")}
