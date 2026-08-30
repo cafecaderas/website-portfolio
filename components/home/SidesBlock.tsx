@@ -1,51 +1,43 @@
 import { Scope } from "@/components/canvas/Scope";
+import { sidesContent } from "@/lib/content/home";
 
 /** One brand, two sides. Used once, on HOME only. */
 export function SidesBlock() {
+  const { eyebrow, a, b } = sidesContent;
+
   return (
     <section className="band">
       <div className="wrap">
-        <p className="eyebrow">ONE BRAND · TWO SIDES</p>
+        <p className="eyebrow">{eyebrow}</p>
         <div className="sides">
           <div className="sidecard">
             <span className="tag">
-              <u>A-SIDE</u> — SOUND
+              <u>{a.tagLabel}</u> {a.tagSuffix}
             </span>
-            <h3>Where it started</h3>
-            <p>
-              Ten years of tracking, mixing and playing records taught me the
-              thing that actually transfers: how something feels in the
-              first four seconds, and what to cut so the rest lands.
-            </p>
+            <h3>{a.title}</h3>
+            <p>{a.body}</p>
             <ul className="list">
-              <li>MIXING</li>
-              <li>MASTERING</li>
-              <li>LIVE SETS</li>
-              <li>FIELD RECORDING</li>
+              {a.tags.map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
             </ul>
             <div className="mini">
-              <Scope amp={0.62} />
+              <Scope amp={a.scopeAmp} />
             </div>
           </div>
           <div className="sidecard">
             <span className="tag">
-              <u>B-SIDE</u> — SYSTEMS
+              <u>{b.tagLabel}</u> {b.tagSuffix}
             </span>
-            <h3>Where it&apos;s going</h3>
-            <p>
-              Now I build the tools and the interfaces — sites, prototypes,
-              small strange software. Same ear, different signal path. The
-              engineering is in service of the feeling, not the other way
-              round.
-            </p>
+            <h3>{b.title}</h3>
+            <p>{b.body}</p>
             <ul className="list">
-              <li>WEBSITES</li>
-              <li>DIGITAL EXPERIENCES</li>
-              <li>CREATIVE DIRECTION</li>
-              <li>PROTOTYPES</li>
+              {b.tags.map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
             </ul>
             <div className="mini">
-              <Scope amp={0.42} />
+              <Scope amp={b.scopeAmp} />
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { projects } from "@/lib/content/projects";
+import { labPageContent } from "@/lib/content/lab";
 import { NowPlayingBar } from "@/components/lab/NowPlayingBar";
 import { LabModuleGrid } from "@/components/lab/LabModuleGrid";
 
@@ -8,17 +9,13 @@ export default function LabPage() {
   return (
     <section className="pagehead">
       <div className="wrap">
-        <p className="eyebrow">LAB — EXPERIMENTS</p>
+        <p className="eyebrow">{labPageContent.eyebrow}</p>
         <h1 className="h1">
-          This is how
+          {labPageContent.titleLine1}
           <br />
-          <em>I think.</em>
+          <em>{labPageContent.titleLine2}</em>
         </h1>
-        <p className="lede">
-          Unfinished on purpose. Music, photography, audio tools, code
-          sketches and prototypes — the things that feed the work but
-          aren&apos;t for sale. Some of it works. Some of it is just loud.
-        </p>
+        <p className="lede">{labPageContent.lede}</p>
 
         <NowPlayingBar />
         <LabModuleGrid projects={lab} />
