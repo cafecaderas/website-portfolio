@@ -4,7 +4,7 @@ import Link from "next/link";
 import { heroContent } from "@/lib/content/home";
 import { MagneticButton } from "@/components/chrome/MagneticButton";
 import { onHeroColorMove } from "./heroColor";
-import { ShaderHero } from "./ShaderHero";
+import { ReactorLoader } from "@/components/three/ReactorLoader";
 import { TapeTransport } from "./TapeTransport";
 
 export function Hero() {
@@ -12,8 +12,8 @@ export function Hero() {
 
   return (
     <section className="hero" onPointerMove={onHeroColorMove}>
-      <ShaderHero />
-      <span className="hero-tune-hint mono">MOVE TO TUNE SIGNAL</span>
+      <ReactorLoader />
+      <span className="hero-tune-hint mono">MOVE TO TUNE · CLICK TO PULSE</span>
       <div className="wrap">
         <div className="hero-meta">
           <div>

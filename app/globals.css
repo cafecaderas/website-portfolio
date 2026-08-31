@@ -428,13 +428,66 @@ section.band {
   font-style: normal;
   color: var(--paper);
 }
-.shader-hero {
+/* The R3F scene sits behind the hero's text and CTAs and never intercepts
+   pointer events — the Hero section itself still owns pointermove (the RGB
+   picker) and pointerdown (the reactor's click pulse). */
+.reactor-host {
   position: absolute;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
+}
+.reactor-host canvas {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Reactive section backdrop (components/three/SectionFieldLoader). Fills its
+   nearest positioned ancestor and never takes pointer events, so the section
+   above it keeps all of its own interaction. */
+.section-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.section-field canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+/* Hosts that need to become the positioning context for a field, and to
+   lift their real content above it. */
+.band--field {
+  position: relative;
+}
+.band--field > .wrap {
+  position: relative;
+  z-index: 1;
+}
+.ticker {
+  position: relative;
+}
+.ticker-in {
+  position: relative;
+  z-index: 1;
+}
+.sides {
+  position: relative;
+}
+.sidecard {
+  z-index: 1;
+}
+.transport canvas,
+.transport .rd,
+.transport .hint {
+  position: relative;
+  z-index: 1;
+}
+.transport .rd,
+.transport .hint {
+  position: absolute;
 }
 .hero-tune-hint {
   position: absolute;
@@ -482,12 +535,30 @@ section.band {
   flex-wrap: wrap;
 }
 
-/* the transport: two reels + tape band, spooled by scroll */
+/* ---------- cast-metal surfaces ----------
+   The DOM half of the hardware language in components/canvas/metal.ts:
+   milled grain + a machined bezel edge, reusable on any panel. Kept as two
+   composable utilities so the ticker, the A/B rack and the deck all read as
+   the same piece of equipment. */
+.milled {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.022) 0 1px,
+    transparent 1px 3px
+  );
+}
+.bezel {
+  box-shadow:
+    inset 1px 1px 0 rgba(0, 0, 0, 0.85),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* the transport: a cast metal deck — two machined knobs + a tine bank */
 .transport {
   margin-top: clamp(24px, 4vw, 44px);
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
-  background: #0c1310;
+  background: #0b0b0b;
   position: relative;
 }
 .transport canvas {
@@ -499,8 +570,12 @@ section.band {
 }
 .transport .sides-live {
   display: flex;
-  gap: 12px;
+  align-items: baseline;
+  gap: 9px;
 }
+/* Kept in --artistic on purpose: a handwritten cassette label against a
+   machined deck is exactly the contrast a real tape has, and it keeps the
+   five-font system's artistic role in genuine use. */
 .transport .side-label {
   font-family: var(--artistic);
   font-size: 15px;
@@ -508,29 +583,48 @@ section.band {
   color: var(--phosphor);
   transition: opacity 0.15s linear;
 }
+.transport .side-sep {
+  color: #3a3a3a;
+}
+/* Monochrome by default — the accent budget is spent on the PWR lamp and
+   the A/B labels, nothing else. */
+/* The deck stops widening at 1080px (MAX_DECK_W in draw.ts) — the engraved
+   rows have to stop with it, or they drift off the metal onto the casing. */
 .transport .rd {
   position: absolute;
-  bottom: 9px;
-  left: 0;
-  right: 0;
+  bottom: 11px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: min(100% - 4px, 1080px);
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 20px;
   font-family: var(--lcd);
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: var(--phosphor);
-  opacity: 0.72;
+  color: #6f6f6f;
   pointer-events: none;
+}
+.transport .rd .mono {
+  color: #b9b9b9;
+}
+.transport .stamp {
+  color: #4a4a4a;
 }
 .transport .hint {
   position: absolute;
-  top: 10px;
-  right: 16px;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100% - 4px, 1080px);
+  padding: 0 20px;
+  text-align: right;
   font-family: var(--mach);
   font-size: 10px;
   letter-spacing: 0.2em;
-  color: var(--steel-faint);
+  color: #4a4a4a;
   pointer-events: none;
 }
 
@@ -538,7 +632,7 @@ section.band {
 .ticker {
   overflow: hidden;
   padding: 12px 0;
-  background: #100e0c;
+  background: #0d0d0d;
   border-bottom: 1px solid var(--rule);
 }
 .ticker-in {
@@ -571,7 +665,7 @@ section.band {
   grid-template-columns: 1fr 1fr;
   border: var(--border-w) solid var(--rule);
   border-radius: var(--radius);
-  background: var(--tape-2);
+  background: #0d0d0d;
   overflow: hidden;
 }
 .sidecard {
@@ -1344,4 +1438,100 @@ section.band {
     margin-left: 0;
     width: 100%;
   }
+}
+
+/* ==========================================================================
+   LOADING SKELETONS + DEV GALLERY
+   Skeletons reuse real layout classes (.nowbar, .labgrid, .mod, etc.) so a
+   loading state occupies the exact box its real content will — this block
+   only adds the shimmer fill and the gallery's own card chrome.
+   ========================================================================== */
+.skeleton {
+  background: linear-gradient(90deg, var(--tape-3) 25%, var(--rule-soft) 50%, var(--tape-3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.gallery-card {
+  border: var(--border-w) solid var(--rule);
+  background: var(--tape-2);
+  margin-bottom: 22px;
+}
+.gallery-card-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 13px;
+  border-bottom: var(--border-w) solid var(--rule-soft);
+  font-family: var(--mach);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--steel-faint);
+}
+.gallery-card-hd strong {
+  color: var(--paper);
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.gallery-card-body {
+  padding: 22px;
+}
+.gallery-card-body.pad-0 {
+  padding: 0;
+}
+/* Isolates components that assume they own the viewport's scroll/stacking
+   context (sticky headers, absolutely-positioned shader canvases) so they
+   preview correctly inside a bounded demo card instead of leaking out of it. */
+.gallery-frame {
+  position: relative;
+  overflow: hidden;
+  contain: layout paint;
+}
+.gallery-scope-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.gallery-scope-row > div {
+  flex: 1;
+  min-width: 220px;
+}
+.gallery-scope {
+  height: 70px;
+  position: relative;
+  border: 1px solid var(--rule-soft);
+  background: #0c1310;
+}
+.gallery-scope canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.field-specimens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.field-specimen {
+  position: relative;
+  height: 120px;
+  border: 1px solid var(--rule-soft);
+  background: var(--tape-2);
+  overflow: hidden;
+}
+.field-specimen-label {
+  margin: 6px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--steel-faint);
 }

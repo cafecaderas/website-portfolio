@@ -21,6 +21,14 @@ Quick reference for the coding agent. The design system is locked — re-paramet
 
 **Quality bar:** no lorem ipsum; no new dependency without a real requirement (see the README's Technology rule); match the existing hand-rolled-engine style in `components/canvas/` and `components/home/TapeTransport/` rather than reaching for a library.
 
+**The one exception to hand-rolling is `components/three/`** — the Hero's Reactor uses Three.js + React Three Fiber + postprocessing, because a displaced 3D mesh with multi-pass bloom is not worth hand-writing. Keep it contained: every other canvas on the site stays on the 2D engine, and the reactor must stay behind `ReactorLoader`'s lazy import so its ~994 KB chunk never loads on routes that don't show it. `reactor-uniforms.ts` is a module singleton on purpose (same shape as the three engines) — it is rAF-owned mutable state, so don't try to move it into React state or refs.
+
+**Hardware surfaces come from `components/canvas/metal.ts`** — `millGrain`, `bezelPanel`, `machinedKnob`, `tineBank`, `statusLed`, `seamLine`, `engrave`. Build new panels/meters from those parts rather than hand-rolling gradients per component; the DOM equivalent is the `.milled` + `.bezel` utility pair in `globals.css`. The look is all-metal and monochrome with **one** lit element, which must always be `--phosphor` — spending the accent anywhere else is what breaks it.
+
+**To make a section reactive, add a preset — don't write a shader.** `components/three/presets.ts` holds every knob (mode, gain, density, mouse/scroll pull, audio band, hue offsets); mount it with `<SectionFieldLoader preset="name" />` inside any `position: relative` host. `lab` and `works` presets are already defined and waiting to be mounted on those pages. See all of them side by side at `/dev/gallery`.
+
+**Anything that reads the engines per-frame must go through `components/three/signal-frame.ts`.** `interaction-engine`'s `decay()` is idempotent only for an identical `t`, so polling the engines from more than one render loop makes mouse/scroll energy decay several times too fast. One read per frame, shared by every scene — never call `getInteractionEnergy`/`getAudioBands` directly from a new canvas.
+
 ## Future tooling ideas (not built — noted for later)
 
 - **Component gallery** — one page/route showing every UI module (nav, row, meter, scope, CV table) in isolation across default/hover/focus states. A reference to diff the real build against; catches inconsistencies page-level views hide.

@@ -26,6 +26,7 @@ let scrollVelocity = 0;
 let scrollPeak = 0;
 let lastScrollY = 0;
 let lastDecayT = -1;
+let clickImpulse = 0;
 
 /** Captured once, on module load — resets only on an actual page reload. */
 const siteEntryTime = typeof window !== "undefined" ? Date.now() : 0;
@@ -62,6 +63,10 @@ function ensureListening() {
     },
     { passive: true },
   );
+
+  window.addEventListener("pointerdown", () => {
+    clickImpulse = 1;
+  }, { passive: true });
 }
 
 /** Idempotent within a single rAF tick — callers all pass the same `t`. */
@@ -74,6 +79,9 @@ function decay(t: number) {
   // Slow lane — the afterglow, lingers for several seconds.
   mousePeak += (1 - mousePeak) * 0.008;
   scrollPeak += (0 - scrollPeak) * 0.012;
+  // Click shockwave — slower than the mouse fast lane on purpose, so a
+  // click reads as a discrete event you can watch travel, not a blip.
+  clickImpulse *= 0.962;
 }
 
 /** ~1.0 at rest, spikes with cursor movement speed, decays back down. */
@@ -101,6 +109,24 @@ export function getInteractionEnergy(t = performance.now() / 1000): number {
   const immediate = (mouseEnergy - 1) * 1.3 + Math.min(1.8, Math.abs(scrollVelocity) * 0.09);
   const afterglow = (mousePeak - 1) * 0.9 + Math.min(1.2, scrollPeak * 0.06);
   return Math.min(4.5, 1 + immediate + afterglow);
+}
+
+/**
+ * Cursor position normalized to 0..1 across the viewport, origin top-left.
+ * The raw coordinates were already being tracked for `mouseEnergy` — this
+ * just exposes them for consumers that need position, not just speed.
+ */
+export function getPointerNormalized(): [number, number] {
+  ensureListening();
+  if (typeof window === "undefined") return [0.5, 0.5];
+  return [lastPointerX / window.innerWidth, lastPointerY / window.innerHeight];
+}
+
+/** 1.0 the instant the pointer goes down, decaying to 0 over ~1.5s. */
+export function getClickImpulse(t = performance.now() / 1000): number {
+  ensureListening();
+  decay(t);
+  return clickImpulse;
 }
 
 /** How long this page has been open, in seconds. */

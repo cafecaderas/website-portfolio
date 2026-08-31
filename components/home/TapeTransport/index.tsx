@@ -9,6 +9,8 @@ import {
   type CanvasMetrics,
 } from "@/components/canvas/signal-engine";
 import { getInteractionEnergy, getSiteElapsedSeconds } from "@/components/canvas/interaction-engine";
+import { SectionFieldLoader } from "@/components/three/SectionFieldLoader";
+import { transportContent } from "@/lib/content/home";
 import { computeGeometry, drawDeck, hitTestReel } from "./draw";
 
 /** Shortest signed angular distance from b to a, handling the ±π wrap. */
@@ -179,24 +181,28 @@ export function TapeTransport() {
 
   return (
     <div className="transport" ref={wrapRef}>
+      {/* Flowing tape-path field behind the deck. The 2D canvas above keeps
+          every existing behaviour — spool, drag, inertia, readouts. */}
+      <SectionFieldLoader preset="tape" />
       <canvas
         ref={canvasRef}
         aria-label="Tape transport — spools as you scroll and reacts to the mouse; drag either reel to spin it by hand"
       />
-      <span className="hint">SCROLL FOR MORE</span>
+      <span className="hint">{transportContent.hint}</span>
       <span className="rd">
         <span className="sides-live">
           <span ref={aRef} className="side-label">
-            A-SIDE
+            {transportContent.sideA}
           </span>
+          <span className="side-sep">·</span>
           <span ref={bRef} className="side-label">
-            B-SIDE
+            {transportContent.sideB}
           </span>
         </span>
         <span ref={countRef} className="mono">
           000:00
         </span>
-        <span>CH1 · 500mV</span>
+        <span className="stamp">{transportContent.stamp}</span>
       </span>
     </div>
   );

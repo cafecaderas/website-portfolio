@@ -11,7 +11,7 @@ export const heroContent = {
     location: "ARIZONA / MEDELLIN / BOGOTÁ / REMOTE",
   },
   metaRight: {
-    version: "SITE V0.1",
+    version: "SITE V3.2",
     aSide: "aSide: Sound",
     bSide: "bSide: Systems",
     timestamp: "REC. 03:12AM",
@@ -24,6 +24,21 @@ export const heroContent = {
   },
   ctaPrimary: { label: "VIEW WORKS", href: "/works" },
   ctaSecondary: { label: "ENTER THE LAB", href: "/lab" },
+} as const;
+
+/**
+ * The tape deck's engraved hardware labels — the text milled into the two
+ * knobs, the power lamp, and the bottom readout row. Changing a label here
+ * is the whole edit; `TapeTransport/draw.ts` reads these straight through.
+ */
+export const transportContent = {
+  knobLeft: "VIBRATION",
+  knobRight: "FREQUENCY",
+  power: "PWR xxx",
+  sideA: "A-SIDE",
+  sideB: "B-SIDE",
+  hint: "SCROLL AROUND",
+  stamp: "BUILT IN LABS",
 } as const;
 
 export const sidesContent = {

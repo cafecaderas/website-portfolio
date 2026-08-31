@@ -3,6 +3,7 @@ import { projects } from "@/lib/content/projects";
 import { selectedWorkContent } from "@/lib/content/home";
 import { WorkRows } from "@/components/works/WorkRows";
 import { Reveal } from "@/components/chrome/Reveal";
+import { SectionFieldLoader } from "@/components/three/SectionFieldLoader";
 
 export function SelectedWork() {
   const { eyebrow, title, ctaLabel, featuredCount } = selectedWorkContent;
@@ -10,7 +11,8 @@ export function SelectedWork() {
 
   return (
     <Reveal>
-      <section className="band">
+      <section className="band band--field">
+        <SectionFieldLoader preset="work" />
         <div className="wrap">
           <p className="eyebrow">{eyebrow}</p>
           <h2 className="h2">{title}</h2>
