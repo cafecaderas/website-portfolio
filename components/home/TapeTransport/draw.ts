@@ -143,8 +143,9 @@ export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
   const tineHalfW = Math.min(plate.w * 0.2, (rx - lx - geo.left.r * 3.4) / 2);
   const tineH = plate.h * 0.46;
 
-  // Shared drive energy for both tines
-  const drive = (0.34 + Math.min(1, Math.abs(spool) * 0.9) * 0.66) * driveEnergy;
+  // Shared drive energy for both tines: responsive to spool + audio/interaction.
+  // Higher base (0.42) for visible animation + 1.2x multiplier for audio sensitivity.
+  const drive = (0.42 + Math.min(1, Math.abs(spool) * 0.9) * 0.68) * driveEnergy * 1.2;
 
   // A-SIDE tines (left)
   const tineXLeft = midX / 2 - tineHalfW / 2;
