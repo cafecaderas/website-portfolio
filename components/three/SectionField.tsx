@@ -66,7 +66,6 @@ function FieldPlane({
     const rect = getRect();
     let localX = 0.5;
     let localY = 0.5;
-    let spool = 0.5;
     if (rect && rect.width > 0 && rect.height > 0) {
       // The shared frame carries a viewport-normalized cursor; convert it
       // into this section's own 0..1 box so the field lights up under the
@@ -74,13 +73,8 @@ function FieldPlane({
       const { pointerX, pointerY } = readSignalFrame();
       localX = (pointerX * window.innerWidth - rect.left) / rect.width;
       localY = 1 - (pointerY * window.innerHeight - rect.top) / rect.height;
-
-      // For the tape field, compute scroll position (spool) relative to this
-      // section. This drives the field mode from grid (A-SIDE) to flow (B-SIDE).
-      const total = window.innerHeight + rect.height;
-      spool = Math.max(0, Math.min(1, 1 - rect.bottom / total));
     }
-    driveFieldUniforms(preset, localX, localY, size.width / Math.max(1, size.height), spool);
+    driveFieldUniforms(preset, localX, localY, size.width / Math.max(1, size.height));
   });
 
   return (

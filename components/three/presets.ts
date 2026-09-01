@@ -218,27 +218,16 @@ export function fieldUniforms(name: FieldPresetName): FieldUniforms {
  * Writes the current frame into one field's uniforms. `localPointer` is the
  * cursor expressed in *this section's* own 0..1 box, so a field lights up
  * under the cursor rather than responding to raw viewport coordinates.
- * `spool` (0..1) is optional — for the tape field, drives the mode from
- * grid (analytical, A-SIDE) to flow (creative, B-SIDE).
  */
 export function driveFieldUniforms(
   name: FieldPresetName,
   localPointerX: number,
   localPointerY: number,
   aspect: number,
-  spool = 0.5,
 ) {
   const u = fieldUniforms(name);
   const f = readSignalFrame();
-  let preset = FIELD_PRESETS[name];
-
-  // For the tape field, switch mode based on scroll position.
-  // A-SIDE (spool < 0.5): grid mode (analytical, organized).
-  // B-SIDE (spool > 0.5): flow mode (creative, fluid).
-  let modeIndex = MODE_INDEX[preset.mode];
-  if (name === "tape") {
-    modeIndex = spool < 0.5 ? MODE_INDEX.grid : MODE_INDEX.flow;
-  }
+  const preset = FIELD_PRESETS[name];
 
   u.uTime.value = f.t;
   u.uBand.value = f.bands[preset.band];
@@ -249,5 +238,5 @@ export function driveFieldUniforms(
   u.uPointer.value.set(localPointerX, localPointerY);
   u.uPhosphor.value.setRGB(f.phosphor[0], f.phosphor[1], f.phosphor[2]);
   u.uAspect.value = aspect;
-  u.uMode.value = modeIndex;
+  u.uMode.value = MODE_INDEX[preset.mode];
 }
