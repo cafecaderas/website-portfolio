@@ -253,6 +253,67 @@ export function statusLed(
   ctx.restore();
 }
 
+/**
+ * An organic knob: softer gradient, fluid rim light, and a rounded pointer dot
+ * instead of a sharp line. Same contact shadow and positioning; different feel.
+ * Used for B-SIDE to contrast with the mechanical A-SIDE knob.
+ */
+export function organicKnob(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  angle: number,
+) {
+  // Contact shadow under the knob (same as machined).
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.06, r * 1.02, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.filter = "blur(6px)";
+  ctx.fill();
+  ctx.restore();
+
+  // The dome: warmer gradient, smoother transitions (organic).
+  const g = ctx.createRadialGradient(
+    cx - r * 0.35,
+    cy - r * 0.4,
+    r * 0.08,
+    cx,
+    cy,
+    r * 1.15,
+  );
+  g.addColorStop(0, "#6a6a6a");
+  g.addColorStop(0.35, "#3a3a3a");
+  g.addColorStop(1, "#151515");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // Fluid rim: softer edges, gentler arc.
+  ctx.lineWidth = 0.8;
+  ctx.strokeStyle = "rgba(0,0,0,0.7)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 1.5, Math.PI * 0.1, Math.PI * 0.9);
+  ctx.stroke();
+
+  // Organic pointer: rounded dot (circle) instead of sharp line.
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  const pointerR = Math.max(1.2, r * 0.055);
+  ctx.fillStyle = METAL.bright;
+  ctx.beginPath();
+  ctx.arc(0, -r * 0.58, pointerR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 /** Engraved monospace label, matching the site's mono type treatment. */
 export function engrave(
   ctx: CanvasRenderingContext2D,

@@ -36,7 +36,7 @@ export function Hero() {
       </div>
 
       <div className="arcwrap">
-        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label={logotype}>
+        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label={logotype} preserveAspectRatio="xMidYMid meet">
           <defs>
             <path id="tapeArc" d="M 40 214 Q 600 78 1160 214" />
           </defs>
@@ -45,8 +45,7 @@ export function Hero() {
               href="#tapeArc"
               startOffset="50%"
               textAnchor="middle"
-              textLength={1030}
-              lengthAdjust="spacingAndGlyphs"
+              lengthAdjust="spacing"
             >
               {logotype}
             </textPath>

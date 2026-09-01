@@ -3,6 +3,7 @@ import {
   bezelPanel,
   engrave,
   machinedKnob,
+  organicKnob,
   METAL,
   millGrain,
   seamLine,
@@ -145,9 +146,47 @@ export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
   }
 
   // --- knobs ---------------------------------------------------------------
+  // Dual knob styles: A-SIDE sharp/mechanical, B-SIDE soft/organic.
+  // The dominance crossfades with spool position (0=A, 1=B).
   const labelY = geo.left.cy + geo.left.r + 15;
-  machinedKnob(ctx, geo.left.cx, geo.left.cy, geo.left.r, leftAngle);
+
+  // A-SIDE: mechanical/industrial (left knob).
+  // Fully visible when spool < 0.5, fades as B takes over.
+  const aSideFade = Math.max(0, 1 - spool * 2);
+  if (aSideFade > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = aSideFade;
+    machinedKnob(ctx, geo.left.cx, geo.left.cy, geo.left.r, leftAngle);
+    ctx.restore();
+  }
+
+  // B-SIDE: organic/handmade (left knob underneath).
+  // Hidden initially, shows as A fades.
+  const bSideFade = Math.max(0, (spool - 0.5) * 2);
+  if (bSideFade > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = bSideFade;
+    organicKnob(ctx, geo.left.cx, geo.left.cy, geo.left.r, leftAngle);
+    ctx.restore();
+  }
+
+  // Labels (always visible, consistent).
   engrave(ctx, transportContent.knobLeft, geo.left.cx, labelY, { size: 9.5 });
-  machinedKnob(ctx, geo.right.cx, geo.right.cy, geo.right.r, rightAngle);
+
+  // Right knob: symmetric crossfade (inverse of left).
+  // A-SIDE starts faded, B-SIDE fades in.
+  if (aSideFade > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = aSideFade;
+    machinedKnob(ctx, geo.right.cx, geo.right.cy, geo.right.r, rightAngle);
+    ctx.restore();
+  }
+  if (bSideFade > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = bSideFade;
+    organicKnob(ctx, geo.right.cx, geo.right.cy, geo.right.r, rightAngle);
+    ctx.restore();
+  }
+
   engrave(ctx, transportContent.knobRight, geo.right.cx, labelY, { size: 9.5 });
 }
