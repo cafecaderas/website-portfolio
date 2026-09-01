@@ -573,13 +573,11 @@ section.band {
   align-items: baseline;
   gap: 9px;
 }
-/* Kept in --artistic on purpose: a handwritten cassette label against a
-   machined deck is exactly the contrast a real tape has, and it keeps the
-   five-font system's artistic role in genuine use. */
+/* A/B labels: terminal/computer aesthetic with monospace, not handwritten. */
 .transport .side-label {
-  font-family: var(--artistic);
-  font-size: 15px;
-  letter-spacing: 0.02em;
+  font-family: var(--mach);
+  font-size: 12px;
+  letter-spacing: 0.08em;
   color: var(--phosphor);
   transition: opacity 0.15s linear;
 }
@@ -612,6 +610,25 @@ section.band {
 }
 .transport .stamp {
   color: #4a4a4a;
+}
+/* Split tape fields: A-SIDE (left, grid) and B-SIDE (right, flow) */
+.transport .section-field:nth-child(1) {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  left: 0;
+  right: 50%;
+  width: 50%;
+}
+.transport .section-field:nth-child(2) {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  left: 50%;
+  right: 0;
+  width: 50%;
 }
 .transport .hint {
   position: absolute;

@@ -56,6 +56,36 @@ export const FIELD_PRESETS = {
     hueShiftB: 0,
     burstGain: 1.0,
   },
+  /**
+   * Tape A-SIDE: rigid grid, analytical. Positioned on the left half,
+   * always in grid mode — the structured, organized signal path.
+   */
+  "tape-a": {
+    mode: "grid",
+    gain: 0.34,
+    density: 12,
+    mousePull: 0.5,
+    scrollPull: 0.6,
+    band: 0,
+    hueShift: 0,
+    hueShiftB: 0,
+    burstGain: 1.0,
+  },
+  /**
+   * Tape B-SIDE: flowing ribbons, creative. Positioned on the right half,
+   * always in flow mode — the organic, fluid signal expression.
+   */
+  "tape-b": {
+    mode: "flow",
+    gain: 0.34,
+    density: 5,
+    mousePull: 0.5,
+    scrollPull: 0.6,
+    band: 0,
+    hueShift: 0,
+    hueShiftB: 0,
+    burstGain: 1.0,
+  },
   /** The ticker strip: treble-led bars, fast, reads as a level meter. */
   ticker: {
     mode: "scan",

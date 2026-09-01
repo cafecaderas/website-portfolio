@@ -181,9 +181,11 @@ export function TapeTransport() {
 
   return (
     <div className="transport" ref={wrapRef}>
-      {/* Flowing tape-path field behind the deck. The 2D canvas above keeps
-          every existing behaviour — spool, drag, inertia, readouts. */}
-      <SectionFieldLoader preset="tape" />
+      {/* A-SIDE (left): grid field — rigid, analytical structure. */}
+      <SectionFieldLoader preset="tape-a" />
+      {/* B-SIDE (right): flow field — organic, fluid expression. */}
+      <SectionFieldLoader preset="tape-b" />
+      {/* The 2D canvas deck sits on top with knobs and tines. */}
       <canvas
         ref={canvasRef}
         aria-label="Tape transport — spools as you scroll and reacts to the mouse; drag either reel to spin it by hand"
