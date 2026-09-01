@@ -62,7 +62,7 @@ export const FIELD_PRESETS = {
    */
   "tape-a": {
     mode: "grid",
-    gain: 0.38,
+    gain: 0.58,
     density: 14,
     mousePull: 0.75,
     scrollPull: 0.8,
@@ -77,7 +77,7 @@ export const FIELD_PRESETS = {
    */
   "tape-b": {
     mode: "flow",
-    gain: 0.42,
+    gain: 0.62,
     density: 6,
     mousePull: 0.65,
     scrollPull: 0.75,

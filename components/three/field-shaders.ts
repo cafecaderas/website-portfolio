@@ -81,7 +81,9 @@ float scanField(vec2 uv, float energy) {
   return bar;
 }
 
-/** Perspective-ish grid with a ripple radiating from the cursor. */
+/** Perspective-ish grid with a ripple radiating from the cursor. Nodes light
+ * up at every line intersection, so it reads as connected points, not just
+ * ruled lines — the "circuit board" look. */
 float gridField(vec2 uv, float energy) {
   vec2 p = uv - 0.5;
   p.x *= uAspect;
@@ -102,13 +104,19 @@ float gridField(vec2 uv, float energy) {
   float ly = smoothstep(lineW, 0.5, cell.y);
   float line = max(lx, ly);
 
-  // The grid only really lights up near the cursor; elsewhere it's a whisper.
+  // Nodes: bright dots where lines cross, always visible — this is what
+  // reads as "connected points" rather than a faint ruled sheet.
+  float node = lx * ly;
+
+  // Always-on baseline (raised from a near-invisible whisper), with the
+  // cursor and audio/click still adding extra glow on top.
   float pointerGlow = exp(-d * (4.4 - uMousePull * 1.8));
-  float lit = 0.22 + pointerGlow * 1.1 * uMousePull + uBand * 0.45 + uBurst * uBurstGain * 0.6;
-  return line * lit;
+  float lit = 0.55 + pointerGlow * 1.1 * uMousePull + uBand * 0.45 + uBurst * uBurstGain * 0.6;
+  return line * lit + node * lit * 1.8;
 }
 
-/** Stacked flowing lines — the tape path, essentially. */
+/** Stacked flowing lines — the tape path, essentially. Bolder amplitude and
+ * thickness so it reads as fluid motion, not a faint suggestion of one. */
 float flowField(vec2 uv, float energy) {
   float total = 0.0;
   float lines = max(1.0, uDensity);
@@ -118,7 +126,7 @@ float flowField(vec2 uv, float energy) {
     float fi = float(i);
     float phase = fi * 1.7;
 
-    float amp = 0.05 + uBand * 0.16 + uBurst * uBurstGain * 0.10;
+    float amp = 0.09 + uBand * 0.22 + uBurst * uBurstGain * 0.15;
     float y = 0.5
       + sin(uv.x * 5.0 + uTime * 0.7 + phase) * amp
       + sin(uv.x * 11.0 - uTime * 0.45 + phase * 1.7) * amp * 0.45
@@ -126,12 +134,13 @@ float flowField(vec2 uv, float energy) {
 
     y += uScroll * uScrollPull * 0.25;
 
-    float thickness = 0.004 + uBand * 0.004;
+    float thickness = 0.007 + uBand * 0.006;
     float line = smoothstep(thickness, 0.0, abs(uv.y - y));
 
-    // Cursor proximity brightens the nearest strands.
+    // Cursor proximity brightens the nearest strands, but the baseline is
+    // already strong — always-visible ribbons, not just-near-cursor ones.
     float dx = abs(uv.x - uPointer.x);
-    line *= 0.45 + exp(-dx * 3.0) * 1.5 * uMousePull;
+    line *= 0.85 + exp(-dx * 3.0) * 1.5 * uMousePull;
     total += line;
   }
   return total;

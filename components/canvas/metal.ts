@@ -124,10 +124,39 @@ export function seamLine(
 }
 
 /**
- * A machined knob: a dark metal dome lit from the upper-left, a turned rim,
- * and a plain pointer line — no lit ring, no colour. `angle` is radians,
- * 0 = pointer straight up, so an existing rotation value can drive it
- * directly.
+ * Shared dark-matte knob base for the neo-trance pair below: a flat, muted
+ * disc (no chrome specular) so both knobs read as the same material —
+ * their personality comes entirely from the rim treatment and pointer.
+ */
+function knobBase(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.06, r * 1.05, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.filter = "blur(6px)";
+  ctx.fill();
+  ctx.restore();
+
+  const g = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r * 1.05);
+  g.addColorStop(0, "#232323");
+  g.addColorStop(0.7, "#161616");
+  g.addColorStop(1, "#0d0d0d");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(0,0,0,0.9)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+/**
+ * A-SIDE: rigid/mechanical. A dark matte disc ringed with discrete glowing
+ * tick marks — a rotary encoder read — and a sharp glowing pointer line.
+ * `angle` is radians, 0 = pointer straight up.
  */
 export function machinedKnob(
   ctx: CanvasRenderingContext2D,
@@ -135,55 +164,44 @@ export function machinedKnob(
   cy: number,
   r: number,
   angle: number,
+  glowColor: string,
+  glow: string,
 ) {
-  // Contact shadow under the knob.
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy + r * 0.06, r * 1.02, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.filter = "blur(6px)";
-  ctx.fill();
-  ctx.restore();
+  knobBase(ctx, cx, cy, r);
 
-  // The dome. Offsetting the gradient origin up-left is what makes it read
-  // as a sphere rather than a flat disc.
-  const g = ctx.createRadialGradient(
-    cx - r * 0.42,
-    cy - r * 0.5,
-    r * 0.06,
-    cx,
-    cy,
-    r * 1.15,
-  );
-  g.addColorStop(0, "#5a5a5a");
-  g.addColorStop(0.42, "#333333");
-  g.addColorStop(1, "#141414");
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = g;
-  ctx.fill();
+  // Discrete tick marks around the rim — the "rigid" read. Twelve fixed
+  // positions, each a short glowing radial line, brighter near the pointer.
+  const TICKS = 12;
+  for (let i = 0; i < TICKS; i++) {
+    const a = (i / TICKS) * Math.PI * 2;
+    const near = Math.max(0, Math.cos(a - angle));
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(a);
+    ctx.strokeStyle = glow;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 2 + near * 4;
+    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = 0.35 + near * 0.55;
+    ctx.beginPath();
+    ctx.moveTo(0, -r * 0.82);
+    ctx.lineTo(0, -r * 0.98);
+    ctx.stroke();
+    ctx.restore();
+  }
 
-  // Turned rim: dark outer line, faint lit arc on the lower-right.
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(0,0,0,0.9)";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 1.5, Math.PI * 0.15, Math.PI * 0.85);
-  ctx.stroke();
-
-  // Machined pointer.
+  // Sharp glowing pointer.
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(angle);
-  ctx.strokeStyle = METAL.bright;
+  ctx.strokeStyle = glowColor;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 8;
   ctx.lineWidth = Math.max(1.6, r * 0.075);
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(0, -r * 0.24);
-  ctx.lineTo(0, -r * 0.72);
+  ctx.moveTo(0, -r * 0.18);
+  ctx.lineTo(0, -r * 0.68);
   ctx.stroke();
   ctx.restore();
 }
@@ -231,6 +249,52 @@ export function tineBank(
 }
 
 /**
+ * A small glowing waveform trace — sine, sawtooth, or square — reading the
+ * actual selected audio waveform rather than a generic scribble. `phase`
+ * animates it left-to-right over time; `amp` (0..1) scales height with
+ * audio/interaction energy.
+ */
+export function waveformTrace(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  shape: "sine" | "sawtooth" | "square",
+  phase: number,
+  amp: number,
+  glowColor: string,
+) {
+  const steps = 48;
+  const cy = y + h / 2;
+  ctx.save();
+  ctx.strokeStyle = glowColor;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 4;
+  ctx.lineWidth = 1.3;
+  ctx.globalAlpha = 0.75;
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const f = i / steps;
+    const p = f * Math.PI * 4 + phase;
+    let v: number;
+    if (shape === "sine") {
+      v = Math.sin(p);
+    } else if (shape === "sawtooth") {
+      v = ((p / Math.PI) % 2) - 1;
+    } else {
+      v = Math.sin(p) >= 0 ? 1 : -1;
+    }
+    const px = x + f * w;
+    const py = cy - v * (h / 2) * amp;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
  * The one accent light. Colour is passed in — on this site that is always
  * derived from `--phosphor`, keeping the "one signal colour" rule intact.
  */
@@ -254,9 +318,10 @@ export function statusLed(
 }
 
 /**
- * An organic knob: softer gradient, fluid rim light, and a rounded pointer dot
- * instead of a sharp line. Same contact shadow and positioning; different feel.
- * Used for B-SIDE to contrast with the mechanical A-SIDE knob.
+ * B-SIDE: fluid/organic. Same dark matte base as `machinedKnob`, ringed with
+ * a continuous, breathing glow instead of discrete ticks — a smooth halo
+ * whose brightness swells and fades around the rim — plus a rounded glowing
+ * pointer dot instead of a sharp line. `t` drives the breathing animation.
  */
 export function organicKnob(
   ctx: CanvasRenderingContext2D,
@@ -264,52 +329,36 @@ export function organicKnob(
   cy: number,
   r: number,
   angle: number,
+  glowColor: string,
+  glow: string,
+  t: number,
 ) {
-  // Contact shadow under the knob (same as machined).
+  knobBase(ctx, cx, cy, r);
+
+  // Continuous glow ring — a soft halo whose intensity breathes over time,
+  // the "fluid" counterpart to A-SIDE's fixed tick marks.
+  const breathe = 0.6 + 0.4 * Math.sin(t * 1.3);
   ctx.save();
+  ctx.strokeStyle = glow;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 10 + breathe * 6;
+  ctx.lineWidth = 1.6;
+  ctx.globalAlpha = 0.5 + breathe * 0.4;
   ctx.beginPath();
-  ctx.arc(cx, cy + r * 0.06, r * 1.02, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.filter = "blur(6px)";
-  ctx.fill();
+  ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 
-  // The dome: warmer gradient, smoother transitions (organic).
-  const g = ctx.createRadialGradient(
-    cx - r * 0.35,
-    cy - r * 0.4,
-    r * 0.08,
-    cx,
-    cy,
-    r * 1.15,
-  );
-  g.addColorStop(0, "#6a6a6a");
-  g.addColorStop(0.35, "#3a3a3a");
-  g.addColorStop(1, "#151515");
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = g;
-  ctx.fill();
-
-  // Fluid rim: softer edges, gentler arc.
-  ctx.lineWidth = 0.8;
-  ctx.strokeStyle = "rgba(0,0,0,0.7)";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(255,255,255,0.18)";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 1.5, Math.PI * 0.1, Math.PI * 0.9);
-  ctx.stroke();
-
-  // Organic pointer: rounded dot (circle) instead of sharp line.
+  // Organic pointer: rounded glowing dot instead of a sharp line.
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(angle);
-  const pointerR = Math.max(1.2, r * 0.055);
-  ctx.fillStyle = METAL.bright;
+  const pointerR = Math.max(1.6, r * 0.09);
+  ctx.fillStyle = glowColor;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 8;
   ctx.beginPath();
-  ctx.arc(0, -r * 0.58, pointerR, 0, Math.PI * 2);
+  ctx.arc(0, -r * 0.6, pointerR, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }

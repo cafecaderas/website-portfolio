@@ -1,4 +1,5 @@
 import { getPhosphorColor, phosphorRgba, wave, type CanvasMetrics } from "@/components/canvas/signal-engine";
+import { getWaveform } from "@/components/canvas/audio-engine";
 import {
   bezelPanel,
   engrave,
@@ -9,6 +10,7 @@ import {
   seamLine,
   statusLed,
   tineBank,
+  waveformTrace,
 } from "@/components/canvas/metal";
 import { transportContent } from "@/lib/content/home";
 
@@ -169,14 +171,27 @@ export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
     });
   }
 
-  // --- knobs (both always visible, distinct styles) --------------------------
-  const labelY = geo.left.cy + geo.left.r + 15;
+  // --- audio waveform traces (one per side, reading the live waveform) -------
+  const waveform = getWaveform();
+  const waveGlow = phosphorRgba(0.85);
+  const waveY = seamY + tineH / 2 + 10;
+  const waveH = Math.max(14, plate.h * 0.1);
+  const waveAmp = Math.min(1, 0.5 + (driveEnergy - 1) * 0.6);
+  if (tineHalfW > 30 && waveY + waveH < plate.y + plate.h - 6) {
+    waveformTrace(ctx, tineXLeft, waveY, tineHalfW, waveH, waveform, t * 2.2, waveAmp, waveGlow);
+    waveformTrace(ctx, tineXRight, waveY, tineHalfW, waveH, waveform, t * 2.2 + Math.PI, waveAmp, waveGlow);
+  }
 
-  // A-SIDE: always show mechanical knob (left position, left half)
-  machinedKnob(ctx, lx, geo.left.cy, geo.left.r, leftAngle);
+  // --- knobs (both always visible, matching neo-trance material) -------------
+  const labelY = geo.left.cy + geo.left.r + 15;
+  const glowColor = getPhosphorColor();
+  const glow = phosphorRgba(0.9);
+
+  // A-SIDE: dark matte base, discrete glowing tick marks, sharp pointer.
+  machinedKnob(ctx, lx, geo.left.cy, geo.left.r, leftAngle, glowColor, glow);
   engrave(ctx, transportContent.knobLeft, lx, labelY, { size: 9.5 });
 
-  // B-SIDE: always show organic knob (right position, right half)
-  organicKnob(ctx, rx, geo.left.cy, geo.left.r, rightAngle);
+  // B-SIDE: same base, continuous breathing glow ring, rounded pointer.
+  organicKnob(ctx, rx, geo.left.cy, geo.left.r, rightAngle, glowColor, glow, t);
   engrave(ctx, transportContent.knobRight, rx, labelY, { size: 9.5 });
 }
