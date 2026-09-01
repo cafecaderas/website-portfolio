@@ -87,10 +87,10 @@ export interface DrawState {
 }
 
 /**
- * The cast deck: a milled metal face, two machined knobs, a bank of steel
- * tines between them, and exactly one lit element (the PWR lamp, in
- * `--phosphor`). Everything that moves is still driven by the same values as
- * before — spool position, drag angle, and real mouse/scroll/audio energy.
+ * The cast deck: split visual design showing A-SIDE (left, mechanical) and
+ * B-SIDE (right, organic). Both halves are always visible with their own knobs,
+ * fields, and tines. Everything driven by the same spool/drag/energy values,
+ * but expressed with distinct visual personalities.
  */
 export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
   const { ctx, w, h } = metrics;
@@ -100,44 +100,56 @@ export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
 
   ctx.clearRect(0, 0, w, h);
 
-  // --- panel ---------------------------------------------------------------
-  // The outer face is solid metal; the inner plate is cut back to a
-  // translucent fill so the WebGL tape-flow field behind the deck reads
-  // faintly *through* it, like a backlit window in the casing.
+  // --- outer panel (full width) -----------------------------------------------
   ctx.fillStyle = METAL.face;
   ctx.fillRect(0, 0, w, h);
   millGrain(ctx, 0, 0, w, h, 3, 0.016);
 
-  ctx.clearRect(plate.x, plate.y, plate.w, plate.h);
-  bezelPanel(ctx, plate.x, plate.y, plate.w, plate.h, "rgba(20,20,20,0.82)");
-  millGrain(ctx, plate.x + 1, plate.y + 1, plate.w - 2, plate.h - 2, 3, 0.02);
+  // --- split the deck down the middle -----------------------------------------
+  // A-SIDE (left half): inner plate, mechanical knob, grid field visible
+  // B-SIDE (right half): inner plate, organic knob, flow field visible
+  const midX = w / 2;
 
-  // --- the one accent light ------------------------------------------------
+  // A-SIDE inner plate (left half)
+  ctx.clearRect(plate.x, plate.y, midX - plate.x, plate.h);
+  bezelPanel(ctx, plate.x, plate.y, midX - plate.x, plate.h, "rgba(20,20,20,0.82)");
+  millGrain(ctx, plate.x + 1, plate.y + 1, midX - plate.x - 2, plate.h - 2, 3, 0.02);
+
+  // B-SIDE inner plate (right half)
+  ctx.clearRect(midX, plate.y, plate.x + plate.w - midX, plate.h);
+  bezelPanel(ctx, midX, plate.y, plate.x + plate.w - midX, plate.h, "rgba(20,20,20,0.82)");
+  millGrain(ctx, midX + 1, plate.y + 1, plate.x + plate.w - midX - 2, plate.h - 2, 3, 0.02);
+
+  // --- center divider seam (vertical) ----------------------------------------
+  ctx.strokeStyle = METAL.seam;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(midX + 0.5, plate.y + 4);
+  ctx.lineTo(midX + 0.5, plate.y + plate.h - 4);
+  ctx.stroke();
+
+  // --- PWR lamp (top center) -------------------------------------------------
   const pwrY = plate.y + Math.max(14, plate.h * 0.1);
   const pulse = 0.72 + 0.28 * Math.sin(t * 1.6);
-  statusLed(ctx, w / 2 - 26, pwrY, 3.2, getPhosphorColor(), phosphorRgba(0.9), pulse);
-  engrave(ctx, transportContent.power, w / 2 - 14, pwrY, {
+  statusLed(ctx, midX - 26, pwrY, 3.2, getPhosphorColor(), phosphorRgba(0.9), pulse);
+  engrave(ctx, transportContent.power, midX - 14, pwrY, {
     size: 9.5,
     color: METAL.label,
     align: "left",
   });
 
-  // --- milled seam behind the tines ---------------------------------------
+  // --- tine banks (one per side) -----------------------------------------------
   const seamY = geo.bandY;
-  seamLine(ctx, lx + geo.left.r * 1.5, seamY, rx - geo.right.r * 1.5);
-
-  // --- tine bank -----------------------------------------------------------
-  // A tight cluster in the middle of the plate, not a bar stretched between
-  // the knobs — closer to a physical slider bank, as in the reference.
-  const tineW = Math.min(plate.w * 0.42, rx - lx - geo.left.r * 3.4);
-  const tineX = plate.x + plate.w / 2 - tineW / 2;
+  const tineHalfW = Math.min(plate.w * 0.2, (rx - lx - geo.left.r * 3.4) / 2);
   const tineH = plate.h * 0.46;
-  if (tineW > 40) {
-    // A travelling wave, so it reads as signal moving through the deck,
-    // scaled by the same drive energy the old waveform used. The arch
-    // envelope keeps the outer tines shorter, as on a real slider bank.
-    const drive = (0.34 + Math.min(1, Math.abs(spool) * 0.9) * 0.66) * driveEnergy;
-    tineBank(ctx, tineX, seamY - tineH / 2, tineW, tineH, TINE_COUNT, (i, n) => {
+
+  // Shared drive energy for both tines
+  const drive = (0.34 + Math.min(1, Math.abs(spool) * 0.9) * 0.66) * driveEnergy;
+
+  // A-SIDE tines (left)
+  const tineXLeft = midX / 2 - tineHalfW / 2;
+  if (tineHalfW > 30) {
+    tineBank(ctx, tineXLeft, seamY - tineH / 2, tineHalfW, tineH, 6, (i, n) => {
       const f = i / (n - 1);
       const travelling = Math.abs(wave(f * 300 - spool * 220, t, 3.1));
       const arch = 0.58 + 0.42 * Math.sin(Math.PI * f);
@@ -145,48 +157,25 @@ export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
     });
   }
 
-  // --- knobs ---------------------------------------------------------------
-  // Dual knob styles: A-SIDE sharp/mechanical, B-SIDE soft/organic.
-  // The dominance crossfades with spool position (0=A, 1=B).
+  // B-SIDE tines (right)
+  const tineXRight = midX + (w - midX) / 2 - tineHalfW / 2;
+  if (tineHalfW > 30) {
+    tineBank(ctx, tineXRight, seamY - tineH / 2, tineHalfW, tineH, 6, (i, n) => {
+      const f = i / (n - 1);
+      const travelling = Math.abs(wave(f * 300 - spool * 220, t, 3.1));
+      const arch = 0.58 + 0.42 * Math.sin(Math.PI * f);
+      return (0.34 + travelling * 0.66 * drive) * arch;
+    });
+  }
+
+  // --- knobs (both always visible, distinct styles) --------------------------
   const labelY = geo.left.cy + geo.left.r + 15;
 
-  // A-SIDE: mechanical/industrial (left knob).
-  // Fully visible when spool < 0.5, fades as B takes over.
-  const aSideFade = Math.max(0, 1 - spool * 2);
-  if (aSideFade > 0.01) {
-    ctx.save();
-    ctx.globalAlpha = aSideFade;
-    machinedKnob(ctx, geo.left.cx, geo.left.cy, geo.left.r, leftAngle);
-    ctx.restore();
-  }
+  // A-SIDE: always show mechanical knob (left position, left half)
+  machinedKnob(ctx, lx, geo.left.cy, geo.left.r, leftAngle);
+  engrave(ctx, transportContent.knobLeft, lx, labelY, { size: 9.5 });
 
-  // B-SIDE: organic/handmade (left knob underneath).
-  // Hidden initially, shows as A fades.
-  const bSideFade = Math.max(0, (spool - 0.5) * 2);
-  if (bSideFade > 0.01) {
-    ctx.save();
-    ctx.globalAlpha = bSideFade;
-    organicKnob(ctx, geo.left.cx, geo.left.cy, geo.left.r, leftAngle);
-    ctx.restore();
-  }
-
-  // Labels (always visible, consistent).
-  engrave(ctx, transportContent.knobLeft, geo.left.cx, labelY, { size: 9.5 });
-
-  // Right knob: symmetric crossfade (inverse of left).
-  // A-SIDE starts faded, B-SIDE fades in.
-  if (aSideFade > 0.01) {
-    ctx.save();
-    ctx.globalAlpha = aSideFade;
-    machinedKnob(ctx, geo.right.cx, geo.right.cy, geo.right.r, rightAngle);
-    ctx.restore();
-  }
-  if (bSideFade > 0.01) {
-    ctx.save();
-    ctx.globalAlpha = bSideFade;
-    organicKnob(ctx, geo.right.cx, geo.right.cy, geo.right.r, rightAngle);
-    ctx.restore();
-  }
-
-  engrave(ctx, transportContent.knobRight, geo.right.cx, labelY, { size: 9.5 });
+  // B-SIDE: always show organic knob (right position, right half)
+  organicKnob(ctx, rx, geo.left.cy, geo.left.r, rightAngle);
+  engrave(ctx, transportContent.knobRight, rx, labelY, { size: 9.5 });
 }
