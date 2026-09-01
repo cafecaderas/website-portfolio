@@ -27,18 +27,15 @@ export const heroContent = {
 } as const;
 
 /**
- * The tape deck's engraved hardware labels — the text milled into the two
- * knobs, the power lamp, and the bottom readout row. Changing a label here
- * is the whole edit; `TapeTransport/draw.ts` reads these straight through.
+ * The tape deck's labels — the A/B side label under the knob and the bottom
+ * mode row. Changing a label here is the whole edit; `TapeTransport/draw.ts`
+ * and `TapeTransport/index.tsx` read these straight through.
  */
 export const transportContent = {
-  knobLeft: "VIBRATION",
-  knobRight: "FREQUENCY",
-  power: "PWR xxx",
   sideA: "A-SIDE",
   sideB: "B-SIDE",
-  hint: "SCROLL AROUND",
-  stamp: "BUILT IN LABS",
+  modeA: "A-SIDE: GRID MODE",
+  modeB: "B-SIDE: FLOW MODE",
 } as const;
 
 export const sidesContent = {

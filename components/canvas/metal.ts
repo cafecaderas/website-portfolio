@@ -124,6 +124,106 @@ export function seamLine(
 }
 
 /**
+ * A single rack-mount bolt — the small screw at each panel corner that
+ * reads as hardware rather than a flat rectangle.
+ */
+export function cornerBolt(ctx: CanvasRenderingContext2D, cx: number, cy: number, r = 4) {
+  const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
+  g.addColorStop(0, "#5a5a5a");
+  g.addColorStop(1, "#101010");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,0.85)";
+  ctx.lineWidth = 0.6;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,0.7)";
+  ctx.lineWidth = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.5, cy);
+  ctx.lineTo(cx + r * 0.5, cy);
+  ctx.stroke();
+}
+
+/**
+ * A single chrome dome knob flanked by two glowing arc brackets — the one
+ * knob style shared by both A-SIDE and B-SIDE. Realistic shiny metal with a
+ * bright specular highlight, plus a phosphor-lit arc curving down either
+ * side, echoing a hardware level indicator. `angle` drives a small dark
+ * pointer notch at the rim.
+ */
+export function neoKnob(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  angle: number,
+  glowColor: string,
+  glow: string,
+) {
+  // Contact shadow.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy + r * 0.08, r * 1.1, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.filter = "blur(8px)";
+  ctx.fill();
+  ctx.restore();
+
+  // Glowing arc brackets flanking the knob on either side.
+  const arcR = r * 1.32;
+  ctx.save();
+  ctx.strokeStyle = glow;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 10;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.arc(cx, cy, arcR, Math.PI * 0.62, Math.PI * 1.38);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, arcR, -Math.PI * 0.38, Math.PI * 0.38);
+  ctx.stroke();
+  ctx.restore();
+
+  // Chrome dome: bright specular highlight fading to a dark edge.
+  const g = ctx.createRadialGradient(
+    cx - r * 0.4,
+    cy - r * 0.45,
+    r * 0.05,
+    cx,
+    cy,
+    r * 1.1,
+  );
+  g.addColorStop(0, "#f4f4f4");
+  g.addColorStop(0.25, "#c9c9c9");
+  g.addColorStop(0.55, "#797979");
+  g.addColorStop(0.8, "#3c3c3c");
+  g.addColorStop(1, "#141414");
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(0,0,0,0.85)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Pointer: a small dark notch at the rim, rotating with `angle`.
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.fillStyle = "#161616";
+  ctx.beginPath();
+  ctx.arc(0, -r * 0.62, Math.max(1.4, r * 0.09), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
  * Shared dark-matte knob base for the neo-trance pair below: a flat, muted
  * disc (no chrome specular) so both knobs read as the same material —
  * their personality comes entirely from the rim treatment and pointer.

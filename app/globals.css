@@ -480,13 +480,11 @@ section.band {
   z-index: 1;
 }
 .transport canvas,
-.transport .rd,
-.transport .hint {
+.transport .rd {
   position: relative;
   z-index: 1;
 }
-.transport .rd,
-.transport .hint {
+.transport .rd {
   position: absolute;
 }
 .hero-tune-hint {
@@ -553,7 +551,7 @@ section.band {
     inset -1px -1px 0 rgba(255, 255, 255, 0.09);
 }
 
-/* the transport: a cast metal deck — two machined knobs + a tine bank */
+/* the transport: bare panel, grid field | one knob | flow field */
 .transport {
   margin-top: clamp(24px, 4vw, 44px);
   border-top: 1px solid var(--rule);
@@ -568,48 +566,27 @@ section.band {
   cursor: grab;
   touch-action: none;
 }
-.transport .sides-live {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-}
-/* A/B labels: terminal/computer aesthetic with monospace, not handwritten. */
-.transport .side-label {
-  font-family: var(--mach);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--phosphor);
-  transition: opacity 0.15s linear;
-}
-.transport .side-sep {
-  color: #3a3a3a;
-}
-/* Monochrome by default — the accent budget is spent on the PWR lamp and
-   the A/B labels, nothing else. */
-/* The deck stops widening at 1080px (MAX_DECK_W in draw.ts) — the engraved
-   rows have to stop with it, or they drift off the metal onto the casing. */
+/* Bottom mode row: "A-SIDE: GRID MODE | B-SIDE: FLOW MODE" — the only text
+   in this section besides the knob's own A/B label. */
 .transport .rd {
   position: absolute;
   bottom: 11px;
   left: 50%;
-  right: auto;
   transform: translateX(-50%);
   width: min(100% - 4px, 1080px);
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 14px;
   padding: 0 20px;
-  font-family: var(--lcd);
+  font-family: var(--mach);
   font-size: 10px;
   letter-spacing: 0.18em;
   color: #6f6f6f;
   pointer-events: none;
 }
-.transport .rd .mono {
-  color: #b9b9b9;
-}
-.transport .stamp {
-  color: #4a4a4a;
+.transport .rd .side-sep {
+  color: #3a3a3a;
 }
 /* Split tape fields: A-SIDE (left, grid) and B-SIDE (right, flow) */
 .transport .section-field:nth-child(1) {
@@ -629,20 +606,6 @@ section.band {
   left: 50%;
   right: 0;
   width: 50%;
-}
-.transport .hint {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100% - 4px, 1080px);
-  padding: 0 20px;
-  text-align: right;
-  font-family: var(--mach);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: #4a4a4a;
-  pointer-events: none;
 }
 
 /* ticker */
