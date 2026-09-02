@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, EffectComposer, Vignette } from "@react-three/postprocessing";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { BloomEffect, ChromaticAberrationEffect } from "postprocessing";
 import { prefersReducedMotion } from "@/components/canvas/signal-engine";
@@ -19,6 +19,35 @@ import {
 
 const PARTICLE_COUNT = 4200;
 const BACKDROP_Z = -7;
+const TARGET_FPS = 30;
+const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+
+/**
+ * Drives the render loop by hand at a capped rate. `frameloop="always"`
+ * would still render (and re-run the full bloom/aberration/vignette chain)
+ * at the display's native rate; `advance()` under `frameloop="never"` is
+ * the only way to actually skip GPU work on the throttled frames rather
+ * than just skipping the CPU-side uniform math.
+ */
+function FrameCap() {
+  const advance = useThree((s) => s.advance);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = 0;
+    const tick = (t: number) => {
+      if (t - last >= FRAME_INTERVAL_MS) {
+        last = t;
+        advance(t);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [advance]);
+
+  return null;
+}
 
 /**
  * Seeded PRNG (mulberry32). The particle field must be identical on every
@@ -206,16 +235,20 @@ export function Reactor({ active = true }: { active?: boolean }) {
   return (
     <Canvas
       dpr={[1, 1.5]}
-      frameloop={reduced ? "demand" : active ? "always" : "never"}
+      frameloop={reduced ? "demand" : "never"}
       camera={{ position: [0, 0, 6], fov: 45 }}
-      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+      gl={{ antialias: false, alpha: false, powerPreference: "default" }}
     >
       <color attach="background" args={["#050505"]} />
+      {!reduced && active && <FrameCap />}
       <Backdrop />
       <ReactorCore groupRef={coreRef} />
       <ParticleHalo />
       <SignalDriver coreRef={coreRef} bloomRef={bloomRef} aberrationRef={aberrationRef} />
-      <EffectComposer>
+      {/* multisampling=0: bloom already softens edges enough that the
+          composer's own 8x MSAA render target (the default) buys little
+          visible sharpness for a real GPU cost every frame. */}
+      <EffectComposer multisampling={0}>
         <Bloom
           ref={bloomRef}
           intensity={0.32}
