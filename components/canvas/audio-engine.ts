@@ -8,6 +8,12 @@
  * maps cleanly onto a physical "power on" control, fitting the tape-deck
  * aesthetic (see SignalToggle).
  *
+ * Once on, two things are user-adjustable — kept deliberately simple:
+ * the oscillator waveform (sine/sawtooth/square), and a single "tone"
+ * knob that sweeps the filter's cutoff + resonance together with the
+ * noise floor — one control doing filter *and* feedback/noise character
+ * at once, rather than separate knobs for each.
+ *
  * getAudioEnergy()/getAudioBands() never block on "is audio on" — when the
  * engine is off they return a gentle synthetic idle pulse, so anything
  * driven by them never looks dead before the user opts in.
@@ -16,16 +22,37 @@
  * modulate its own draws, so this file must stay a leaf — no cycle).
  */
 
+export type Waveform = "sine" | "sawtooth" | "square";
+
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let analyser: AnalyserNode | null = null;
 let on = false;
+
+let oscA: OscillatorNode | null = null;
+let oscB: OscillatorNode | null = null;
+let filterB: BiquadFilterNode | null = null;
+let noiseGain: GainNode | null = null;
+
+let waveform: Waveform = "sine";
+/** 0..1 — filter cutoff + resonance + noise floor, all together. */
+let tone = 0.5;
 
 let timeData: Uint8Array<ArrayBuffer> | null = null;
 let freqData: Uint8Array<ArrayBuffer> | null = null;
 let energy = 1;
 let bands: [number, number, number] = [0.3, 0.25, 0.2];
 let lastAnalysisT = -1;
+
+/** tone (0..1) -> [filter Hz, filter Q, noise gain]. Exponential filter sweep reads more natural than linear. */
+function toneToParams(value: number): { freq: number; q: number; noise: number } {
+  const v = Math.min(1, Math.max(0, value));
+  return {
+    freq: 200 * Math.pow(25, v),
+    q: 0.3 + v * 13.7,
+    noise: 0.01 + v * 0.14,
+  };
+}
 
 function buildGraph(context: AudioContext) {
   const master = context.createGain();
@@ -35,19 +62,22 @@ function buildGraph(context: AudioContext) {
   analyserNode.fftSize = 512;
   analyserNode.smoothingTimeConstant = 0.75;
 
+  const { freq, q, noise } = toneToParams(tone);
+
   // Low drone: two detuned oscillators through a slowly modulated lowpass.
-  const oscA = context.createOscillator();
-  oscA.type = "sine";
-  oscA.frequency.value = 55; // A1
+  const a = context.createOscillator();
+  a.type = waveform;
+  a.frequency.value = 55; // A1
   const gainA = context.createGain();
   gainA.gain.value = 0.5;
 
-  const oscB = context.createOscillator();
-  oscB.type = "sawtooth";
-  oscB.frequency.value = 55 * 1.5; // fifth above
-  const filterB = context.createBiquadFilter();
-  filterB.type = "lowpass";
-  filterB.frequency.value = 800;
+  const b = context.createOscillator();
+  b.type = waveform;
+  b.frequency.value = 55 * 1.5; // fifth above
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = freq;
+  filter.Q.value = q;
   const gainB = context.createGain();
   gainB.gain.value = 0.22;
 
@@ -61,14 +91,14 @@ function buildGraph(context: AudioContext) {
   const noiseBuffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
   const noiseData = noiseBuffer.getChannelData(0);
   for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
-  const noise = context.createBufferSource();
-  noise.buffer = noiseBuffer;
-  noise.loop = true;
+  const noiseSrc = context.createBufferSource();
+  noiseSrc.buffer = noiseBuffer;
+  noiseSrc.loop = true;
   const noiseFilter = context.createBiquadFilter();
   noiseFilter.type = "highpass";
   noiseFilter.frequency.value = 2000;
-  const noiseGain = context.createGain();
-  noiseGain.gain.value = 0.03;
+  const nGain = context.createGain();
+  nGain.gain.value = noise;
 
   // Slow amplitude "breathing" so the signal has real movement to track,
   // not just a flat drone.
@@ -79,32 +109,36 @@ function buildGraph(context: AudioContext) {
   tremoloDepth.gain.value = 0.05;
 
   filterLfo.connect(filterLfoDepth);
-  filterLfoDepth.connect(filterB.frequency);
+  filterLfoDepth.connect(filter.frequency);
 
   tremoloLfo.connect(tremoloDepth);
   tremoloDepth.connect(master.gain);
 
-  oscA.connect(gainA);
-  oscB.connect(filterB);
-  filterB.connect(gainB);
-  noise.connect(noiseFilter);
-  noiseFilter.connect(noiseGain);
+  a.connect(gainA);
+  b.connect(filter);
+  filter.connect(gainB);
+  noiseSrc.connect(noiseFilter);
+  noiseFilter.connect(nGain);
 
   gainA.connect(master);
   gainB.connect(master);
-  noiseGain.connect(master);
+  nGain.connect(master);
 
   master.connect(analyserNode);
   analyserNode.connect(context.destination);
 
-  oscA.start();
-  oscB.start();
-  noise.start();
+  a.start();
+  b.start();
+  noiseSrc.start();
   filterLfo.start();
   tremoloLfo.start();
 
   masterGain = master;
   analyser = analyserNode;
+  oscA = a;
+  oscB = b;
+  filterB = filter;
+  noiseGain = nGain;
   timeData = new Uint8Array(analyserNode.frequencyBinCount);
   freqData = new Uint8Array(analyserNode.frequencyBinCount);
 }
@@ -172,6 +206,32 @@ export function stopAudioEngine() {
 
 export function isAudioEngineOn(): boolean {
   return on;
+}
+
+/** Sine / sawtooth / square — applies live, no need to restart the engine. */
+export function setWaveform(next: Waveform) {
+  waveform = next;
+  if (oscA) oscA.type = next;
+  if (oscB) oscB.type = next;
+}
+
+export function getWaveform(): Waveform {
+  return waveform;
+}
+
+/** 0..1 — sweeps filter cutoff + resonance + noise floor together. Applies live. */
+export function setTone(value: number) {
+  tone = Math.min(1, Math.max(0, value));
+  if (!ctx || !filterB || !noiseGain) return;
+  const { freq, q, noise } = toneToParams(tone);
+  const now = ctx.currentTime;
+  filterB.frequency.setTargetAtTime(freq, now, 0.03);
+  filterB.Q.setTargetAtTime(q, now, 0.03);
+  noiseGain.gain.setTargetAtTime(noise, now, 0.03);
+}
+
+export function getTone(): number {
+  return tone;
 }
 
 /** ~1.0 at idle, higher on transients. Synthetic idle pulse when off. */

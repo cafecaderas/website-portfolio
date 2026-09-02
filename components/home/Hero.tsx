@@ -1,15 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { heroContent } from "@/lib/content/home";
 import { MagneticButton } from "@/components/chrome/MagneticButton";
-import { ShaderHero } from "./ShaderHero";
+import { onHeroColorMove } from "./heroColor";
+import { ReactorLoader } from "@/components/three/ReactorLoader";
 import { TapeTransport } from "./TapeTransport";
 
 export function Hero() {
   const { metaLeft, metaRight, logotype, tagline, ctaPrimary, ctaSecondary } = heroContent;
 
   return (
-    <section className="hero">
-      <ShaderHero />
+    <section className="hero" onPointerMove={onHeroColorMove}>
+      <ReactorLoader />
+      <span className="hero-tune-hint mono">MOVE TO TUNE · CLICK TO PULSE</span>
       <div className="wrap">
         <div className="hero-meta">
           <div>
@@ -32,7 +36,7 @@ export function Hero() {
       </div>
 
       <div className="arcwrap">
-        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label={logotype}>
+        <svg className="arc" viewBox="0 0 1200 250" role="img" aria-label={logotype} preserveAspectRatio="xMidYMid meet">
           <defs>
             <path id="tapeArc" d="M 40 214 Q 600 78 1160 214" />
           </defs>
@@ -41,8 +45,7 @@ export function Hero() {
               href="#tapeArc"
               startOffset="50%"
               textAnchor="middle"
-              textLength={1030}
-              lengthAdjust="spacingAndGlyphs"
+              lengthAdjust="spacing"
             >
               {logotype}
             </textPath>

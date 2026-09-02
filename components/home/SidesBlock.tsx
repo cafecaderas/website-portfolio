@@ -4,6 +4,7 @@ import { Scope } from "@/components/canvas/Scope";
 import { Reveal } from "@/components/chrome/Reveal";
 import { SpotlightGlow } from "@/components/chrome/SpotlightGlow";
 import { onSpotlightMove } from "@/components/chrome/spotlight";
+import { SectionFieldLoader } from "@/components/three/SectionFieldLoader";
 import { sidesContent } from "@/lib/content/home";
 
 /** One brand, two sides. Used once, on HOME only. */
@@ -15,7 +16,10 @@ export function SidesBlock() {
       <section className="band">
         <div className="wrap">
           <p className="eyebrow">{eyebrow}</p>
-          <div className="sides">
+          {/* One grid split down the middle into two hues — sound on the
+              left, systems on the right, both derived from --phosphor. */}
+          <div className="sides milled bezel">
+            <SectionFieldLoader preset="sides" />
             <div className="sidecard group" onPointerMove={onSpotlightMove}>
               <SpotlightGlow />
               <span className="tag">

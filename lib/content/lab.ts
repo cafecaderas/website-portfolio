@@ -12,11 +12,14 @@ export const nowPlayingContent = {
   readout: "After Hours Mix — 03:12AM take · 128 BPM",
 } as const;
 
-/** Display label for each LAB project category (module header tag). */
-export const labCategoryLabel: Record<string, string> = {
-  code: "CODE",
-  dj: "DJ",
-  audio: "AUDIO",
-  photo: "PHOTO",
-  proto: "PROTO",
-};
+/** Keys are `SubTag` values actually present among LAB entries — not the full universal set. A project can match more than one, unlike workFilters. */
+export const labFilters = [
+  { key: "all", label: "ALL" },
+  { key: "code", label: "CODE" },
+  { key: "audio", label: "AUDIO" },
+  { key: "ai", label: "AI" },
+  { key: "editing", label: "EDITING" },
+  { key: "photo", label: "PHOTO" },
+  { key: "design", label: "DESIGN" },
+  { key: "ux-ui", label: "UX | UI" },
+] as const;

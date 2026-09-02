@@ -11,7 +11,7 @@ export const heroContent = {
     location: "ARIZONA / MEDELLIN / BOGOTÁ / REMOTE",
   },
   metaRight: {
-    version: "SITE V0.1",
+    version: "SITE V3.2",
     aSide: "aSide: Sound",
     bSide: "bSide: Systems",
     timestamp: "REC. 03:12AM",
@@ -24,6 +24,18 @@ export const heroContent = {
   },
   ctaPrimary: { label: "VIEW WORKS", href: "/works" },
   ctaSecondary: { label: "ENTER THE LAB", href: "/lab" },
+} as const;
+
+/**
+ * The tape deck's labels — the A/B side label under the knob and the bottom
+ * mode row. Changing a label here is the whole edit; `TapeTransport/draw.ts`
+ * and `TapeTransport/index.tsx` read these straight through.
+ */
+export const transportContent = {
+  sideA: "A-SIDE",
+  sideB: "B-SIDE",
+  modeA: "A-SIDE: GRID MODE",
+  modeB: "B-SIDE: FLOW MODE",
 } as const;
 
 export const sidesContent = {

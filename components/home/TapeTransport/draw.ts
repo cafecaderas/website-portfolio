@@ -1,137 +1,105 @@
-import { getPhosphorColor, phosphorRgba, wave, type CanvasMetrics } from "@/components/canvas/signal-engine";
+import { getPhosphorColor, phosphorRgba, type CanvasMetrics } from "@/components/canvas/signal-engine";
+import { cornerBolt, engrave, METAL, neoKnob } from "@/components/canvas/metal";
+import { transportContent } from "@/lib/content/home";
 
-export interface ReelGeometry {
+export interface KnobGeometry {
   cx: number;
   cy: number;
   r: number;
 }
 
 export interface DeckGeometry {
-  left: ReelGeometry;
-  right: ReelGeometry;
-  bandY: number;
-  bandH: number;
-  lx: number;
-  rx: number;
+  knob: KnobGeometry;
+  /** Inner plate the grid/flow fields and knob sit on. */
+  plate: { x: number; y: number; w: number; h: number };
 }
 
+/** The deck is a unit of equipment, not a stretched bar — it stops widening. */
+const MAX_DECK_W = 1080;
+
 export function computeGeometry(w: number, h: number): DeckGeometry {
-  const cy = h * 0.5;
-  const r = Math.min(h * 0.3, w * 0.13);
-  const lx = w * 0.24;
-  const rx = w * 0.76;
+  const pad = Math.max(10, Math.min(22, w * 0.014));
+  const plateW = Math.min(w - pad * 2, MAX_DECK_W);
+  const plate = {
+    x: (w - plateW) / 2,
+    y: pad,
+    w: plateW,
+    h: h - pad * 2,
+  };
+
+  const cx = plate.x + plate.w / 2;
+  const cy = plate.y + plate.h * 0.44;
+  const r = Math.min(plate.h * 0.26, plate.w * 0.065);
+
   return {
-    left: { cx: lx, cy, r },
-    right: { cx: rx, cy, r },
-    bandY: cy,
-    bandH: Math.max(26, r * 0.62),
-    lx,
-    rx,
+    knob: { cx, cy, r },
+    plate,
   };
 }
 
-/** Which reel (if any) a canvas-space point (CSS pixels) falls inside. */
-export function hitTestReel(w: number, h: number, x: number, y: number): "left" | "right" | null {
+/** Whether a canvas-space point (CSS pixels) falls on the single knob. */
+export function hitTestKnob(w: number, h: number, x: number, y: number): boolean {
   const geo = computeGeometry(w, h);
-  for (const side of ["left", "right"] as const) {
-    const reel = geo[side];
-    const dx = x - reel.cx;
-    const dy = y - reel.cy;
-    if (dx * dx + dy * dy <= reel.r * reel.r) return side;
-  }
-  return null;
+  const dx = x - geo.knob.cx;
+  const dy = y - geo.knob.cy;
+  const hit = geo.knob.r * 1.15;
+  return dx * dx + dy * dy <= hit * hit;
 }
 
 export interface DrawState {
   t: number;
-  /** 0..1, how far scrolled through the section — drives which side is dominant. */
+  /** 0..1, how far scrolled through the section — crossfades the A/B label. */
   spool: number;
-  /** Combined signal-intensity × mouse/scroll energy multiplier for the waveform. */
-  driveEnergy: number;
-  /** Final rotation angle (radians) for each reel — auto-spin + any manual drag offset, already summed by the caller. */
-  leftAngle: number;
-  rightAngle: number;
+  /** Knob rotation angle (radians) — manual drag offset only, no auto-spin. */
+  angle: number;
 }
 
+/**
+ * The rebuilt deck: a bare panel with one chrome knob in the centre,
+ * flanked by the grid field (left) and the flow field (right, mounted by
+ * the parent component as WebGL layers behind this canvas). Corner bolts
+ * read as hardware. No tines, no waveform traces, no audio drive — matching
+ * the reference exactly before any further behaviour is layered back in.
+ */
 export function drawDeck(metrics: CanvasMetrics, state: DrawState) {
   const { ctx, w, h } = metrics;
-  const { t, spool, driveEnergy, leftAngle, rightAngle } = state;
+  const { spool, angle } = state;
   const geo = computeGeometry(w, h);
-  const { bandY, bandH, lx, rx } = geo;
+  const { plate, knob } = geo;
+
   ctx.clearRect(0, 0, w, h);
 
-  ctx.fillStyle = "#08120C";
-  ctx.fillRect(lx, bandY - bandH / 2, rx - lx, bandH);
-  ctx.strokeStyle = phosphorRgba(0.3);
+  // Outer panel.
+  ctx.fillStyle = METAL.face;
+  ctx.fillRect(0, 0, w, h);
+
+  // Inner plate: cleared so the grid/flow fields behind show through, with
+  // a plain hairline border — no milled texture, no fill, per the reference.
+  ctx.clearRect(plate.x, plate.y, plate.w, plate.h);
+  ctx.strokeStyle = "rgba(255,255,255,0.09)";
   ctx.lineWidth = 1;
-  ctx.strokeRect(lx + 0.5, bandY - bandH / 2 + 0.5, rx - lx - 1, bandH - 1);
+  ctx.strokeRect(plate.x + 0.5, plate.y + 0.5, plate.w - 1, plate.h - 1);
 
+  // Corner bolts.
+  const inset = 14;
+  cornerBolt(ctx, plate.x + inset, plate.y + inset);
+  cornerBolt(ctx, plate.x + plate.w - inset, plate.y + inset);
+  cornerBolt(ctx, plate.x + inset, plate.y + plate.h - inset);
+  cornerBolt(ctx, plate.x + plate.w - inset, plate.y + plate.h - inset);
+
+  // The one knob, centred between the two fields.
+  const glowColor = getPhosphorColor();
+  const glow = phosphorRgba(0.9);
+  neoKnob(ctx, knob.cx, knob.cy, knob.r, angle, glowColor, glow);
+
+  // Label under the knob: crossfades between A-SIDE and B-SIDE with spool.
+  const labelY = knob.cy + knob.r + 18;
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(lx, bandY - bandH / 2, rx - lx, bandH);
-  ctx.clip();
-  ctx.shadowColor = phosphorRgba(0.8);
-  ctx.shadowBlur = 9;
-  ctx.strokeStyle = getPhosphorColor();
-  ctx.lineWidth = 1.5;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  const drive = (0.35 + Math.min(1, Math.abs(spool) * 0.9) * 0.75) * driveEnergy;
-  for (let x = lx; x <= rx; x += 1.5) {
-    const y = bandY - wave(x - spool * 260, t, 3.1) * (bandH * 0.42) * drive;
-    if (x === lx) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1 - spool;
+  engrave(ctx, transportContent.sideA, knob.cx, labelY, { size: 10, color: METAL.label });
   ctx.restore();
-
-  (
-    [
-      [geo.left, leftAngle, 0] as const,
-      [geo.right, rightAngle, 1] as const,
-    ] as const
-  ).forEach(([reel, angle, i]) => {
-    const { cx, cy, r } = reel;
-    const fill = i === 0 ? 1 - Math.min(0.72, Math.max(0, spool)) : 0.3 + Math.min(0.7, Math.max(0, spool));
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * (0.42 + fill * 0.55), 0, Math.PI * 2);
-    ctx.fillStyle = "#1E1A17";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(184,188,194,0.14)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
-    ctx.fillStyle = "#0C0A09";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(184,188,194,0.3)";
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(angle);
-    ctx.strokeStyle = "rgba(184,188,194,0.55)";
-    ctx.lineWidth = 2.2;
-    for (let k = 0; k < 3; k++) {
-      ctx.rotate((Math.PI * 2) / 3);
-      ctx.beginPath();
-      ctx.moveTo(0, -r * 0.1);
-      ctx.lineTo(0, -r * 0.29);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(184,188,194,0.22)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  });
-
-  ctx.fillStyle = "rgba(181,80,46,0.85)";
-  ctx.fillRect(w / 2 - 16, bandY + bandH / 2 + 6, 32, 9);
+  ctx.save();
+  ctx.globalAlpha = spool;
+  engrave(ctx, transportContent.sideB, knob.cx, labelY, { size: 10, color: METAL.label });
+  ctx.restore();
 }
