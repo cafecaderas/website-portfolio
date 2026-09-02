@@ -5,9 +5,12 @@ import { getProjectBySlug } from "@/lib/content/projects";
 import { featuredCaseStudyContent } from "@/lib/content/works";
 
 export function FeaturedCaseStudy() {
-  const { slug, chipLabel, tags, ctaLabel, readouts, scopeAmp } = featuredCaseStudyContent;
+  const { slug, chipLabel, labels, ctaLabel, readouts, scopeAmp } = featuredCaseStudyContent;
   const project = getProjectBySlug(slug);
   if (!project) return null;
+
+  const { core } = project;
+  const introText = project.body.find((block) => block.type === "text")?.text ?? core.description;
 
   return (
     <div className="feature">
@@ -16,30 +19,27 @@ export function FeaturedCaseStudy() {
           <span className="led-dot animate__animated animate__pulse animate__infinite" />
           {chipLabel}
         </span>
-        <h3 style={{ marginTop: 16 }}>{project.title}</h3>
+        <h3 style={{ marginTop: 16 }}>{core.title}</h3>
         <p className="lede" style={{ fontSize: "14.5px" }}>
-          {project.caseStudy?.body}
+          {introText}
         </p>
         <div className="chips">
-          {tags.map((tag) => (
-            <span className="chip" key={tag}>
-              {tag}
+          {labels.map((label) => (
+            <span className="chip" key={label}>
+              {label}
             </span>
           ))}
         </div>
         <div style={{ marginTop: 22 }}>
-          <Link className="btn" href={`/works/${project.slug}`}>
+          <Link className="btn" href={`/works/${core.slug}`}>
             {ctaLabel}
           </Link>
         </div>
       </div>
       <div className="vis">
-        <PlaceholderImage
-          src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1000&q=70"
-          alt="Studio placeholder photo for this case study"
-          sizes="(max-width: 880px) 100vw, 45vw"
-          showTag={false}
-        />
+        {core.cover && (
+          <PlaceholderImage src={core.cover.src} alt={core.cover.alt} sizes="(max-width: 880px) 100vw, 45vw" showTag={false} />
+        )}
         <Scope amp={scopeAmp} />
         <span className="rd">
           {readouts.map((readout) => (

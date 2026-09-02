@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import type { Project, ProjectCategory } from "@/lib/content/types";
+import type { MainCategory } from "@/lib/content/types";
+import type { IndexedProject } from "@/lib/content/projects";
 import { worksPageContent, workFilters } from "@/lib/content/works";
-import { WorkRows } from "./WorkRows";
+import { WorksTable } from "./WorksTable";
 import { FeaturedCaseStudy } from "./FeaturedCaseStudy";
 import { Reveal } from "@/components/chrome/Reveal";
 
-type FilterKey = ProjectCategory | "all";
+type FilterKey = MainCategory | "all";
 
-export function WorksPageClient({ projects }: { projects: Project[] }) {
+export function WorksPageClient({ projects }: { projects: IndexedProject[] }) {
   const [active, setActive] = useState<FilterKey>("all");
   const shownCount =
-    active === "all" ? projects.length : projects.filter((p) => p.category === active).length;
+    active === "all" ? projects.length : projects.filter((p) => p.core.category === active).length;
 
   return (
     <>
@@ -55,14 +56,15 @@ export function WorksPageClient({ projects }: { projects: Project[] }) {
       <section style={{ paddingBottom: "clamp(46px, 7vw, 88px)" }}>
         <div className="wrap">
           <Reveal>
-            <FeaturedCaseStudy />
+            <WorksTable
+              projects={projects}
+              isHidden={(p) => active !== "all" && p.core.category !== active}
+            />
           </Reveal>
           <Reveal>
-            <WorkRows
-              projects={projects}
-              isHidden={(p) => active !== "all" && p.category !== active}
-              className="works-rows"
-            />
+            <div style={{ marginTop: 46 }}>
+              <FeaturedCaseStudy />
+            </div>
           </Reveal>
         </div>
       </section>

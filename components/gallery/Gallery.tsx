@@ -24,7 +24,7 @@ import { WorkRows } from "@/components/works/WorkRows";
 import { FeaturedCaseStudy } from "@/components/works/FeaturedCaseStudy";
 import { NowPlayingBar } from "@/components/lab/NowPlayingBar";
 import { LabModuleGrid } from "@/components/lab/LabModuleGrid";
-import { projects } from "@/lib/content/projects";
+import { getLabProjects, getWorkProjects } from "@/lib/content/projects";
 
 /** The two heaviest live modules (WebGL + its own rAF/drag loop) — own chunk. */
 const LiveSignalSection = dynamic(
@@ -83,8 +83,11 @@ function Card({
  * so this doubles as a map of that tree.
  */
 export function Gallery() {
-  const works = projects.filter((p) => p.section === "works");
-  const lab = projects.filter((p) => p.section === "lab");
+  // Client Component reading these at module scope — harmless while these
+  // accessors stay synchronous. If they ever become async CMS fetches, this
+  // needs to move server-side and come in as props (see WorksPageClient).
+  const works = getWorkProjects();
+  const lab = getLabProjects();
 
   return (
     <>

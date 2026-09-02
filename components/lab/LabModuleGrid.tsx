@@ -1,10 +1,11 @@
 "use client";
 
-import type { Project } from "@/lib/content/types";
+import Link from "next/link";
+import { formatTag } from "@/lib/content/types";
+import type { IndexedProject } from "@/lib/content/projects";
 import { PlaceholderImage } from "@/components/chrome/PlaceholderImage";
 import { SpotlightGlow } from "@/components/chrome/SpotlightGlow";
 import { onSpotlightMove } from "@/components/chrome/spotlight";
-import { labCategoryLabel } from "@/lib/content/lab";
 
 /**
  * 22 segments, varying heights (deterministic — no randomness, so this
@@ -33,41 +34,74 @@ function Meter({ level }: { level: number }) {
   return <div className="meter">{bars}</div>;
 }
 
-export interface LabModuleGridProps {
-  projects: Project[];
-  /** slug → live-fetched value, overriding the static `meta` field. */
-  liveMeta?: Record<string, string>;
+/**
+ * The meter reading is pure decoration, not tracked progress data — there's
+ * no real "70% done" for a DJ mix or a typeface experiment. Deriving it from
+ * the slug means every new lab entry still gets a personality-driven meter
+ * for free, with nothing to fill in and nothing to keep in sync.
+ */
+function pseudoLevel(slug: string): number {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
+  return (hash % 100) / 100;
 }
 
-export function LabModuleGrid({ projects, liveMeta }: LabModuleGridProps) {
+export interface LabModuleGridProps {
+  projects: IndexedProject[];
+  /** slug → live-fetched value, overriding the static `meta` field. */
+  liveMeta?: Record<string, string>;
+  /**
+   * Filtering hides modules, it does not re-mount them — every module stays
+   * in the DOM and toggles the `hidden` attribute instead. Mirrors WorkRows.
+   */
+  isHidden?: (project: IndexedProject) => boolean;
+}
+
+/**
+ * A grid of entry points, same as WorkRows — every module is a live link
+ * into that project's own detail page, in-progress or not.
+ */
+export function LabModuleGrid({ projects, liveMeta, isHidden }: LabModuleGridProps) {
   return (
     <div className="labgrid">
-      {projects.map((project) => (
-        <article className="mod group" key={project.slug} onPointerMove={onSpotlightMove}>
-          <SpotlightGlow />
-          <div className="mod-hd">
-            <span className="id mono">{project.index}</span>
-            <span className="fm">{labCategoryLabel[project.category] ?? project.category.toUpperCase()}</span>
-          </div>
-          {project.slug === "room-tone" && (
-            <PlaceholderImage
-              src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=700&q=70"
-              alt="Interior photo placeholder for Room Tone"
-              className="mod-photo"
-              sizes="(max-width: 640px) 100vw, 33vw"
-            />
-          )}
-          <div className="mod-body">
-            <h3>{project.title}</h3>
-            <p>{project.summary}</p>
-            <Meter level={project.level ?? 0} />
-            <div className="mod-ft">
-              <span>{liveMeta?.[project.slug] ?? project.meta}</span>
-              <span>{project.status}</span>
+      {projects.map((project) => {
+        const { core } = project;
+        return (
+          <Link
+            className="mod group"
+            key={core.slug}
+            href={`/lab/${core.slug}`}
+            hidden={isHidden?.(project) ?? false}
+            onPointerMove={onSpotlightMove}
+          >
+            <SpotlightGlow />
+            <div className="mod-hd">
+              <span className="id mono">{project.index}</span>
+              <span className="fm">{core.tags?.[0] ? formatTag(core.tags[0]) : "—"}</span>
             </div>
-          </div>
-        </article>
-      ))}
+            {core.cover && (
+              <PlaceholderImage
+                src={core.cover.src}
+                alt={core.cover.alt}
+                className="mod-photo"
+                sizes="(max-width: 640px) 100vw, 33vw"
+              />
+            )}
+            <div className="mod-body">
+              <h3>{core.title}</h3>
+              <p>{core.description}</p>
+              <Meter level={pseudoLevel(core.slug)} />
+              {core.tags && core.tags.length > 0 && (
+                <div className="mod-tags mono">{core.tags.map((t) => `#${t}`).join(" ")}</div>
+              )}
+              <div className="mod-ft">
+                <span>{(liveMeta?.[core.slug] ?? core.meta) && `[${liveMeta?.[core.slug] ?? core.meta}]`}</span>
+                <span>{core.status}</span>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
