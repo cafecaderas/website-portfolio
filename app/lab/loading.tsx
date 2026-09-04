@@ -1,10 +1,11 @@
 import { labPageContent } from "@/lib/content/lab";
 
 /**
- * Shown automatically while LabPage's `await getRepoLastPush(...)` is in
- * flight — Next wraps this route segment in Suspense for free because the
- * page component is async. Reuses the real page's copy and layout classes
- * (.tablebox, .trow) so nothing shifts when the real content lands.
+ * Next wraps this whole route segment in Suspense for free just because
+ * this file exists — LabPage itself is a plain synchronous Server
+ * Component now (no data fetch to await), so this only fires on a
+ * genuinely slow navigation. Reuses the real page's copy and layout
+ * classes (.tablebox, .trow) so nothing shifts when the real content lands.
  */
 export default function LabLoading() {
   return (

@@ -8,8 +8,6 @@ import { onSpotlightMove } from "@/components/chrome/spotlight";
 
 export interface LabTableProps {
   projects: IndexedProject[];
-  /** slug → live-fetched value, overriding the static `meta` field. Same mechanism LabModuleGrid used. */
-  liveMeta?: Record<string, string>;
   /** Filtering hides rows, it does not re-mount them — same pattern as WorksTable. */
   isHidden?: (project: IndexedProject) => boolean;
 }
@@ -23,7 +21,7 @@ export interface LabTableProps {
  * YEAR/STATUS reuse `date`/`status`/`live` exactly as WORKS does — lab
  * entries already carry all three, nothing new to add.
  */
-export function LabTable({ projects, liveMeta, isHidden }: LabTableProps) {
+export function LabTable({ projects, isHidden }: LabTableProps) {
   return (
     <div className="tablebox">
       <span className="tablebox-tag mono">
@@ -41,7 +39,6 @@ export function LabTable({ projects, liveMeta, isHidden }: LabTableProps) {
       {projects.map((project) => {
         const { core } = project;
         const hidden = isHidden?.(project) ?? false;
-        const meta = liveMeta?.[core.slug] ?? core.meta;
         return (
           <Link
             key={core.slug}
@@ -59,7 +56,7 @@ export function LabTable({ projects, liveMeta, isHidden }: LabTableProps) {
                 <span className="tagline mono">{core.tags.map((t) => `#${t}`).join(" ")}</span>
               )}
             </span>
-            <span className="type dim">[{meta ?? "—"}]</span>
+            <span className="type dim">[{core.meta ?? "—"}]</span>
             <span className="year dim">{core.date}</span>
             <span className="status">
               <span

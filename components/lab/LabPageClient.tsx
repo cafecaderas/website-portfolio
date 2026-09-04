@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 import type { SubTag } from "@/lib/content/types";
 import type { IndexedProject } from "@/lib/content/projects";
 import { labPageContent, labFilters } from "@/lib/content/lab";
-import { NowPlayingBar } from "./NowPlayingBar";
-import { LabModuleGrid } from "./LabModuleGrid";
+import { LabTable } from "./LabTable";
 import { Reveal } from "@/components/chrome/Reveal";
 import { AuroraField } from "@/components/decor/AuroraField";
 import { PatchMatrix } from "@/components/decor/PatchMatrix";
@@ -16,10 +15,9 @@ type FilterKey = SubTag | "all";
 
 export interface LabPageClientProps {
   projects: IndexedProject[];
-  liveMeta?: Record<string, string>;
 }
 
-export function LabPageClient({ projects, liveMeta }: LabPageClientProps) {
+export function LabPageClient({ projects }: LabPageClientProps) {
   const [active, setActive] = useState<FilterKey>("all");
   const shownCount =
     active === "all" ? projects.length : projects.filter((p) => p.core.tags?.includes(active)).length;
@@ -53,18 +51,11 @@ export function LabPageClient({ projects, liveMeta }: LabPageClientProps) {
           </span>
         </div>
 
-        <NowPlayingBar />
         <Reveal>
-          <div className="tablebox">
-            <span className="tablebox-tag mono">
-              ~/lab<span className="cursor">_</span>
-            </span>
-            <LabModuleGrid
-              projects={projects}
-              liveMeta={liveMeta}
-              isHidden={(p) => active !== "all" && !p.core.tags?.includes(active)}
-            />
-          </div>
+          <LabTable
+            projects={projects}
+            isHidden={(p) => active !== "all" && !p.core.tags?.includes(active)}
+          />
         </Reveal>
 
         <Reveal>
