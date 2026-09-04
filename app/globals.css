@@ -33,9 +33,21 @@
   --phosphor: #ff0000;
   --rust: #666666;
 
+  /* The second light. --phosphor is the key light, this is the fill: a
+     separate, always-saturated hue rather than a blend of the two, so the
+     reactor can show both colors at once and let them mix only where the
+     two beams actually overlap. Hero X/Y drives both together (see
+     heroColor.ts) — they rotate as a pair, never collapsing to one muddy
+     average the way a single interpolated value did. */
+  --phosphor-b: #00aaff;
+
   /* hover/accent, derived from --phosphor — not directly exposed, so
      the Tweak Bar can never pin it independently of the signal color. */
   --rust-lit: color-mix(in srgb, var(--phosphor) 65%, var(--paper) 35%);
+
+  /* the midpoint of the two lights — only for surfaces that genuinely
+     want the blend (gradient midstops), never for a flat fill. */
+  --phosphor-mix: color-mix(in srgb, var(--phosphor) 50%, var(--phosphor-b) 50%);
 
   --display: var(--font-display), "Arial Black", system-ui, sans-serif;
   --body: var(--font-body), system-ui, -apple-system, sans-serif;
@@ -68,6 +80,7 @@
   --color-rust-lit: var(--rust-lit);
   --color-steel: var(--steel);
   --color-phosphor: var(--phosphor);
+  --color-phosphor-b: var(--phosphor-b);
   --font-sans: var(--body);
   --font-mono: var(--lcd);
 }
