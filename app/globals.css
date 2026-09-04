@@ -33,9 +33,21 @@
   --phosphor: #ff0000;
   --rust: #666666;
 
+  /* The second light. --phosphor is the key light, this is the fill: a
+     separate, always-saturated hue rather than a blend of the two, so the
+     reactor can show both colors at once and let them mix only where the
+     two beams actually overlap. Hero X/Y drives both together (see
+     heroColor.ts) — they rotate as a pair, never collapsing to one muddy
+     average the way a single interpolated value did. */
+  --phosphor-b: #00aaff;
+
   /* hover/accent, derived from --phosphor — not directly exposed, so
      the Tweak Bar can never pin it independently of the signal color. */
   --rust-lit: color-mix(in srgb, var(--phosphor) 65%, var(--paper) 35%);
+
+  /* the midpoint of the two lights — only for surfaces that genuinely
+     want the blend (gradient midstops), never for a flat fill. */
+  --phosphor-mix: color-mix(in srgb, var(--phosphor) 50%, var(--phosphor-b) 50%);
 
   --display: var(--font-display), "Arial Black", system-ui, sans-serif;
   --body: var(--font-body), system-ui, -apple-system, sans-serif;
@@ -68,6 +80,7 @@
   --color-rust-lit: var(--rust-lit);
   --color-steel: var(--steel);
   --color-phosphor: var(--phosphor);
+  --color-phosphor-b: var(--phosphor-b);
   --font-sans: var(--body);
   --font-mono: var(--lcd);
 }
@@ -1589,6 +1602,498 @@ section.band {
   color: var(--rust);
 }
 
+/* ==========================================================================
+   DECOR SECTIONS — WORKS + LAB
+   Six non-data panels. Everything here is presentation only: no project
+   data reaches these, and nothing in them links anywhere. They exist to
+   give both index pages a colour register the hairline/terminal system
+   deliberately never had, and they all draw from the same two signal
+   lights (--phosphor / --phosphor-b) so "more colour" never means "a new
+   palette" — it means the two we already have, finally used at full
+   saturation instead of as 1px accents.
+   Every animation here is disabled wholesale under prefers-reduced-motion
+   at the bottom of this block.
+   ========================================================================== */
+.decor {
+  margin-top: 54px;
+}
+.decor-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: var(--border-w) solid var(--rule-soft);
+}
+.decor-readout {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--steel-faint);
+  white-space: nowrap;
+}
+
+/* ---------- 1. spectrum bands (WORKS) ---------- */
+.spectrum {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+  padding: 0 2px;
+  border: var(--border-w) solid var(--rule-soft);
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--phosphor) 7%, transparent), transparent 62%),
+    var(--tape-2);
+  overflow: hidden;
+}
+.spectrum-bar {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 22%;
+  transform-origin: bottom;
+  /* Position in the row picks the colour, so the bank sweeps key -> fill
+     left to right and the two lights are legible as a gradient, not a mix. */
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--phosphor) calc(100% - (var(--i) / var(--n)) * 100%), var(--phosphor-b)),
+    color-mix(in srgb, var(--paper) 55%, transparent)
+  );
+  animation: spectrum-rise 2.4s ease-in-out infinite alternate;
+  /* Phase from index: a travelling wave, not 56 synchronised blinks. */
+  animation-delay: calc(var(--i) * -0.055s);
+}
+@keyframes spectrum-rise {
+  0% {
+    height: 12%;
+    opacity: 0.55;
+  }
+  100% {
+    height: 92%;
+    opacity: 1;
+  }
+}
+
+/* ---------- 2. signal path (WORKS) ---------- */
+.sigpath {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 34px 4% 8px;
+  border: var(--border-w) solid var(--rule-soft);
+  background: var(--tape-2);
+}
+.sigpath-rail {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 44px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--phosphor),
+    var(--phosphor-mix),
+    var(--phosphor-b),
+    var(--phosphor-mix),
+    var(--phosphor)
+  );
+  background-size: 220% 100%;
+  /* One pulse crossing the whole rail reads as flow; per-segment animation
+     would read as five unrelated blinks. */
+  animation: rail-flow 5.5s linear infinite;
+}
+@keyframes rail-flow {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+.sigpath-node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 0;
+}
+.sigpath-dot {
+  width: 15px;
+  height: 15px;
+  transform: rotate(45deg);
+  background: var(--tape);
+  /* Odd nodes sit under the fill light, even under the key — the chain
+     visibly passes between the two sources as it runs. */
+  border: 1px solid var(--phosphor);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--phosphor) 60%, transparent);
+  animation: node-pulse 5.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.55s);
+}
+.sigpath-node:nth-child(even) .sigpath-dot {
+  border-color: var(--phosphor-b);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--phosphor-b) 60%, transparent);
+}
+@keyframes node-pulse {
+  0%,
+  70%,
+  100% {
+    transform: rotate(45deg) scale(1);
+    background: var(--tape);
+  }
+  12% {
+    transform: rotate(45deg) scale(1.5);
+    background: currentColor;
+  }
+}
+.sigpath-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--steel-dim);
+}
+
+/* ---------- 3. chroma wall (WORKS) ---------- */
+.chroma {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+}
+.chroma-tile {
+  aspect-ratio: 1;
+  /* Two independent index-driven variables, which is what stops this from
+     reading as 36 copies of one swatch: --t walks the tile's *base* colour
+     the whole way from key to fill across the wall, while the conic angle
+     spins separately. Neighbours therefore differ in hue AND in where their
+     highlight falls, and the wall as a whole is one continuous sweep
+     between the two lights rather than a repeating tile. */
+  --t: calc((var(--i) / var(--n)) * 100%);
+  background:
+    conic-gradient(
+      from calc(var(--i) * 47deg),
+      transparent,
+      color-mix(in srgb, var(--paper) 42%, transparent) 28%,
+      transparent 62%
+    ),
+    color-mix(in srgb, var(--phosphor-b) var(--t), var(--phosphor));
+  opacity: 0.72;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
+}
+.chroma:hover .chroma-tile {
+  opacity: 0.25;
+}
+.chroma .chroma-tile:hover {
+  opacity: 1;
+  transform: scale(1.35);
+  z-index: 1;
+}
+
+/* ---------- 4. aurora field (LAB) ---------- */
+.aurora {
+  position: relative;
+  height: 220px;
+  border: var(--border-w) solid var(--rule-soft);
+  background: var(--tape-2);
+  overflow: hidden;
+  isolation: isolate;
+}
+.aurora-blob {
+  position: absolute;
+  width: 46%;
+  height: 150%;
+  border-radius: 50%;
+  filter: blur(46px);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  background: radial-gradient(circle at 50% 50%, var(--phosphor), transparent 68%);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+  /* Per-blob offsets: nothing shares a duration, so the field never loops
+     visibly even though every blob is on a simple alternate cycle. */
+  animation-delay: calc(var(--i) * -5.2s);
+  animation-duration: calc(20s + var(--i) * 4s);
+  left: calc(var(--i) * 20% - 12%);
+  top: -28%;
+}
+.aurora-blob:nth-child(even) {
+  background: radial-gradient(circle at 50% 50%, var(--phosphor-b), transparent 68%);
+}
+.aurora-blob:nth-child(3) {
+  background: radial-gradient(circle at 50% 50%, var(--phosphor-mix), transparent 70%);
+}
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-14%, -6%, 0) scale(0.9);
+  }
+  50% {
+    transform: translate3d(12%, 8%, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(24%, -4%, 0) scale(0.95);
+  }
+}
+/* Scanline veil over the top — ties the soft field back to the tape/CRT
+   language so it doesn't read as a stock gradient hero. */
+.aurora-grain {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    color-mix(in srgb, var(--tape) 55%, transparent) 2px 3px
+  );
+  pointer-events: none;
+}
+
+/* ---------- 5. patch matrix (LAB) ---------- */
+.patch {
+  position: relative;
+  padding: 26px 22px;
+  border: var(--border-w) solid var(--rule-soft);
+  background: var(--tape-2);
+}
+.patch-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 14px 10px;
+}
+.patch-jack {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--steel-faint);
+  background: radial-gradient(circle at 50% 40%, var(--tape) 55%, var(--rule) 100%);
+}
+.patch-jack.is-patched {
+  border-color: var(--phosphor);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--phosphor) 70%, transparent);
+}
+.patch-jack--b.is-patched {
+  border-color: var(--phosphor-b);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--phosphor-b) 70%, transparent);
+}
+/* The cable overlay shares the socket grid's box exactly, so the SVG's
+   0-100 coordinate space and the CSS grid's cells describe the same points
+   and every cable end lands on a socket centre. preserveAspectRatio="none"
+   in the markup lets the curve stretch with the box instead of letterboxing. */
+.patch-cables {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 26px;
+  bottom: 26px;
+  width: calc(100% - 44px);
+  height: calc(100% - 52px);
+  pointer-events: none;
+  overflow: visible;
+}
+.patch-cable {
+  fill: none;
+  stroke: var(--phosphor);
+  /* Non-scaling stroke: the SVG is stretched non-uniformly to match the
+     box, which would otherwise squash the line weight along one axis. */
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--phosphor) 60%, transparent));
+  animation: cable-sway 7s ease-in-out infinite alternate;
+}
+.patch-cable--b {
+  stroke: var(--phosphor-b);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--phosphor-b) 60%, transparent));
+}
+/* A hair of vertical give — the rack breathing, not the cable swinging. */
+@keyframes cable-sway {
+  from {
+    transform: translateY(-1%);
+  }
+  to {
+    transform: translateY(1.5%);
+  }
+}
+
+/* ---------- 6. sonar sweep (LAB) ---------- */
+.sonar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(28px, 6vw, 90px);
+  padding: 34px 26px;
+  border: var(--border-w) solid var(--rule-soft);
+  background:
+    radial-gradient(circle at 30% 50%, color-mix(in srgb, var(--phosphor) 6%, transparent), transparent 60%),
+    radial-gradient(circle at 78% 50%, color-mix(in srgb, var(--phosphor-b) 7%, transparent), transparent 62%),
+    var(--tape-2);
+}
+.sonar-scope {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(200px, 26vw, 300px);
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 50%;
+  border: 1px solid var(--rule-soft);
+  overflow: hidden;
+}
+.sonar-ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  border: 1px solid var(--phosphor);
+  animation: sonar-expand 6s linear infinite;
+  animation-delay: calc(var(--i) * -1.2s);
+}
+.sonar-ring:nth-child(even) {
+  border-color: var(--phosphor-b);
+}
+@keyframes sonar-expand {
+  from {
+    width: 4%;
+    height: 4%;
+    opacity: 0.85;
+  }
+  to {
+    width: 104%;
+    height: 104%;
+    opacity: 0;
+  }
+}
+/* A narrow, low-opacity wedge with a hard leading edge — a wide bright arm
+   dominates the scope and buries the rings and blips underneath it. */
+.sonar-arm {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--phosphor) 30%, transparent),
+    color-mix(in srgb, var(--phosphor) 6%, transparent) 14%,
+    transparent 26%,
+    transparent 100%
+  );
+  animation: sonar-rotate 4.5s linear infinite;
+}
+@keyframes sonar-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sonar-cross {
+  position: absolute;
+  background: var(--rule-soft);
+}
+.sonar-cross--h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+.sonar-cross--v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+/* Blips sit at fixed polar coordinates derived from index — deliberately
+   not synchronised with the arm, so this reads as a scan rather than a
+   loading spinner where everything lights as the arm passes. */
+.sonar-blip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phosphor-b);
+  transform: rotate(calc((var(--i) / var(--n)) * 360deg))
+    translateX(calc(26px + var(--i) * 11px)) rotate(calc((var(--i) / var(--n)) * -360deg));
+  animation: blip-fade 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.42s);
+}
+.sonar-blip:nth-child(odd) {
+  background: var(--phosphor);
+}
+@keyframes blip-fade {
+  0%,
+  100% {
+    opacity: 0.15;
+    box-shadow: none;
+  }
+  40% {
+    opacity: 1;
+    box-shadow: 0 0 10px currentColor;
+  }
+}
+.sonar-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--steel-dim);
+}
+.sonar-legend li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: var(--border-w) solid var(--rule-soft);
+  min-width: 178px;
+}
+.sonar-legend li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+/* The legend doubles as the site's only printed statement of the two-light
+   model — key, fill, and the overlap that is the actual point of it. */
+.sonar-key {
+  width: 26px;
+  height: 4px;
+  box-shadow: 0 0 8px currentColor;
+}
+.sonar-key--a {
+  background: var(--phosphor);
+}
+.sonar-key--b {
+  background: var(--phosphor-b);
+}
+.sonar-key--mix {
+  background: var(--phosphor-mix);
+}
+
+/* Motion is the decoration here, so reduced-motion gets the composition
+   without the movement — every panel still reads as itself, frozen. */
+@media (prefers-reduced-motion: reduce) {
+  .spectrum-bar,
+  .sigpath-rail,
+  .sigpath-dot,
+  .aurora-blob,
+  .patch-cable,
+  .sonar-ring,
+  .sonar-arm,
+  .sonar-blip {
+    animation: none !important;
+  }
+  .spectrum-bar {
+    height: calc(28% + (var(--i) / var(--n)) * 54%);
+  }
+  .sonar-ring {
+    width: calc(18% + var(--i) * 20%);
+    height: calc(18% + var(--i) * 20%);
+    opacity: 0.4;
+  }
+  .sonar-blip {
+    opacity: 0.85;
+  }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 880px) {
   .sides,
@@ -1598,6 +2103,32 @@ section.band {
   .contact,
   .project-layout {
     grid-template-columns: 1fr;
+  }
+  /* decor sections — the wide diagrams need to reflow, not just shrink */
+  .chroma {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .sonar {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .sonar-legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .sigpath {
+    padding-inline: 2%;
+  }
+  .sigpath-label {
+    font-size: 8px;
+    letter-spacing: 0.12em;
+  }
+  .patch-grid {
+    gap: 10px 6px;
+  }
+  .spectrum {
+    height: 104px;
   }
   .project-sidebar {
     position: static;

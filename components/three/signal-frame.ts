@@ -5,7 +5,7 @@ import {
   getPointerNormalized,
   getScrollVelocity,
 } from "@/components/canvas/interaction-engine";
-import { getPhosphorRgbNormalized } from "@/components/canvas/signal-engine";
+import { getPhosphorBRgbNormalized, getPhosphorRgbNormalized } from "@/components/canvas/signal-engine";
 
 /**
  * One read of every engine, per animation frame, shared by every consumer.
@@ -28,6 +28,8 @@ export type SignalFrame = {
   pointerX: number;
   pointerY: number;
   phosphor: [number, number, number];
+  /** The fill light — see heroColor.ts for why there are two, not one blend. */
+  phosphorB: [number, number, number];
   /** Combined audio + interaction + click — the value glow chains read. */
   drive: number;
 };
@@ -50,6 +52,7 @@ export function readSignalFrame(): SignalFrame {
   const scroll = getScrollVelocity(t);
   const [pointerX, pointerY] = getPointerNormalized();
   const phosphor = getPhosphorRgbNormalized();
+  const phosphorB = getPhosphorBRgbNormalized();
 
   cached = {
     t,
@@ -61,6 +64,7 @@ export function readSignalFrame(): SignalFrame {
     pointerX,
     pointerY,
     phosphor,
+    phosphorB,
     drive: energy - 1 + (interaction - 1) * 0.55 + burst * 1.8,
   };
   return cached;

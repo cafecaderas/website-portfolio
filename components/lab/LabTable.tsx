@@ -1,34 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import { formatTag } from "@/lib/content/types";
 import type { IndexedProject } from "@/lib/content/projects";
 import { SpotlightGlow } from "@/components/chrome/SpotlightGlow";
 import { onSpotlightMove } from "@/components/chrome/spotlight";
 
-export interface WorksTableProps {
+export interface LabTableProps {
   projects: IndexedProject[];
-  /** Filtering hides rows, it does not re-mount them — same pattern as WorkRows. */
+  /** slug → live-fetched value, overriding the static `meta` field. Same mechanism LabModuleGrid used. */
+  liveMeta?: Record<string, string>;
+  /** Filtering hides rows, it does not re-mount them — same pattern as WorksTable. */
   isHidden?: (project: IndexedProject) => boolean;
 }
 
 /**
- * The works index, read as data rather than staged as a portfolio slideshow.
- * The stack (`meta`) leads each row instead of the sequential index — it's
- * the more interesting fact about a finished project, and the index still
- * lives on (in the sidebar, the detail page) for anything that needs strict
- * ordering. Cover photos stay on the detail page; this view is deliberately
- * text-only, closer to a directory listing than a gallery.
+ * The lab index, read as the same kind of data table as WORKS — text-only,
+ * cover photos left on the detail page. TAG leads the narrow column with a
+ * lab project's primary craft tag (most lab entries don't have a `category`
+ * yet — that's earned on graduating to works), with the full tag set
+ * underneath the title, same split WorksTable uses for category vs. tags.
+ * YEAR/STATUS reuse `date`/`status`/`live` exactly as WORKS does — lab
+ * entries already carry all three, nothing new to add.
  */
-export function WorksTable({ projects, isHidden }: WorksTableProps) {
+export function LabTable({ projects, liveMeta, isHidden }: LabTableProps) {
   return (
     <div className="tablebox">
       <span className="tablebox-tag mono">
-        ~/works<span className="cursor">_</span>
+        ~/lab<span className="cursor">_</span>
       </span>
 
       <div className="trow trow--head" aria-hidden="true">
-        <span className="stack-tag">PROJECT</span>
-        <span>NAME</span>
+        <span className="stack-tag">TAG</span>
+        <span>PROJECT</span>
         <span className="type">CATEGORY</span>
         <span className="year">YEAR</span>
         <span className="status">STATUS</span>
@@ -37,16 +41,17 @@ export function WorksTable({ projects, isHidden }: WorksTableProps) {
       {projects.map((project) => {
         const { core } = project;
         const hidden = isHidden?.(project) ?? false;
+        const meta = liveMeta?.[core.slug] ?? core.meta;
         return (
           <Link
             key={core.slug}
-            href={`/works/${core.slug}`}
+            href={`/lab/${core.slug}`}
             className="trow group"
             hidden={hidden}
             onPointerMove={onSpotlightMove}
           >
             <SpotlightGlow />
-            <span className="stack-tag">[{core.meta ?? "—"}]</span>
+            <span className="stack-tag">{core.tags?.[0] ? formatTag(core.tags[0]) : "—"}</span>
             <span className="ttl">
               {core.title}
               <span className="sub">{core.description}</span>
@@ -54,7 +59,7 @@ export function WorksTable({ projects, isHidden }: WorksTableProps) {
                 <span className="tagline mono">{core.tags.map((t) => `#${t}`).join(" ")}</span>
               )}
             </span>
-            <span className="type dim">{core.category?.toUpperCase() ?? "—"}</span>
+            <span className="type dim">[{meta ?? "—"}]</span>
             <span className="year dim">{core.date}</span>
             <span className="status">
               <span

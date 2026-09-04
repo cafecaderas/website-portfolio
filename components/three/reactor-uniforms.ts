@@ -22,6 +22,7 @@ export const reactorUniforms = {
   uScroll: { value: 0 },
   uPointer: { value: new THREE.Vector2(0.5, 0.5) },
   uPhosphor: { value: new THREE.Color(1, 0, 0) },
+  uPhosphorB: { value: new THREE.Color(0, 0.667, 1) },
 };
 
 /**
@@ -41,6 +42,7 @@ export function driveReactorUniforms(): SignalFrame {
   reactorUniforms.uScroll.value = THREE.MathUtils.clamp(f.scroll * 0.02, -1, 1);
   reactorUniforms.uPointer.value.set(f.pointerX, f.pointerY);
   reactorUniforms.uPhosphor.value.setRGB(f.phosphor[0], f.phosphor[1], f.phosphor[2]);
+  reactorUniforms.uPhosphorB.value.setRGB(f.phosphorB[0], f.phosphorB[1], f.phosphorB[2]);
 
   return f;
 }

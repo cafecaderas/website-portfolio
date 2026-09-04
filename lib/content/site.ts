@@ -14,6 +14,8 @@ export const siteConfig = {
   title: "Cafe Caderas — Audio Engineer × Software Engineer",
   description:
     "Creative technologist, designer, engineer, and DJ. Websites and digital experiences for people who care how things feel.",
+  /** Canonical production domain — the single source of truth for metadataBase, sitemap.ts, and robots.ts. */
+  url: "https://www.cafecaderas.com",
 } as const;
 
 export const tickerLines = [

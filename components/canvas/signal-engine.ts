@@ -77,6 +77,23 @@ export function getPhosphorRgbNormalized(): [number, number, number] {
   return [r / 255, g / 255, b / 255];
 }
 
+/**
+ * The fill light — the second signal color. Same contract as
+ * getPhosphorColor() above, reading --phosphor-b so the reactor's two
+ * light sources stay in sync with whatever the Hero picker last set.
+ */
+export function getPhosphorBColor(): string {
+  if (typeof window === "undefined") return "#00aaff";
+  const value = getComputedStyle(document.documentElement).getPropertyValue("--phosphor-b").trim();
+  return value || "#00aaff";
+}
+
+/** --phosphor-b as 0-1 floats, for WebGL uniforms. */
+export function getPhosphorBRgbNormalized(): [number, number, number] {
+  const [r, g, b] = resolveColorRgb(getPhosphorBColor());
+  return [r / 255, g / 255, b / 255];
+}
+
 export function phosphorRgba(alpha: number): string {
   const [r, g, b] = resolveColorRgb(getPhosphorColor());
   return `rgba(${r},${g},${b},${alpha})`;

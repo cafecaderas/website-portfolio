@@ -69,7 +69,35 @@ uniform float uInteraction; // mouse+scroll energy, 1..4.5
 uniform float uBurst;       // click shockwave, 1 -> 0
 uniform float uScroll;      // signed scroll velocity, roughly -1..1
 uniform vec2  uPointer;     // cursor, 0..1
-uniform vec3  uPhosphor;    // the site's one signal color
+uniform vec3  uPhosphor;    // key light — the site's primary signal color
+uniform vec3  uPhosphorB;   // fill light — the second source, never pre-blended with the key
+`;
+
+/**
+ * The two light directions, aimed from opposite sides so most of the
+ * geometry is lit predominantly by one or the other, and only the band
+ * where the two beams overlap shows their additive mix. Aiming them
+ * head-on from left/right would split the object into two flat halves with
+ * a hard seam; the Y/Z offsets stagger the falloff so the transition wraps
+ * around the form the way two real lamps on stands would.
+ */
+const TWO_LIGHTS = `
+const vec3 KEY_DIR  = vec3(-0.68,  0.42, 0.60);
+const vec3 FILL_DIR = vec3( 0.72, -0.24, 0.66);
+
+/**
+ * Additive two-source lighting. The ambient term keeps faces that turn away
+ * from both lamps from going pure black, and the divide afterwards pulls total
+ * output back down to roughly what the old single-color version emitted —
+ * the bloom threshold downstream was tuned against that level and blows
+ * out into a haze if this starts handing it twice the energy.
+ */
+vec3 twoLightColor(vec3 n, float ambient) {
+  float key  = pow(max(dot(n, normalize(KEY_DIR)),  0.0), 1.35);
+  float fill = pow(max(dot(n, normalize(FILL_DIR)), 0.0), 1.35);
+  vec3 lit = uPhosphor * (key + ambient) + uPhosphorB * (fill + ambient * 0.85);
+  return lit / (1.0 + ambient * 1.85);
+}
 `;
 
 /**
@@ -119,6 +147,7 @@ void main() {
 
 export const CORE_WIRE_FRAG = `
 ${UNIFORMS}
+${TWO_LIGHTS}
 
 varying float vDisp;
 varying vec3  vNormalW;
@@ -137,9 +166,15 @@ void main() {
   brightness *= 0.80 + (uEnergy - 1.0) * 0.70 + (uInteraction - 1.0) * 0.22;
   brightness += uBurst * 0.40;
 
-  // Peaks lean toward white; troughs stay saturated phosphor. Capped well
-  // below full white so the logotype in front always stays readable.
-  vec3 color = mix(uPhosphor, vec3(1.0), clamp(ridge * 0.22 + uBurst * 0.25, 0.0, 0.35));
+  // Two colored sources instead of one flat tint: faces turned toward the
+  // key read as --phosphor, faces turned toward the fill as --phosphor-b,
+  // and the band between them carries the genuine additive mix. Both
+  // colors are on screen simultaneously — nothing was averaged upstream.
+  vec3 lit = twoLightColor(vNormalW, 0.20);
+
+  // Peaks lean toward white; troughs stay saturated. Capped well below
+  // full white so the logotype in front always stays readable.
+  vec3 color = mix(lit, vec3(1.0), clamp(ridge * 0.22 + uBurst * 0.25, 0.0, 0.35));
   gl_FragColor = vec4(color * brightness, 1.0);
 }
 `;
@@ -147,6 +182,7 @@ void main() {
 /** The dark shell just inside the wireframe — occludes back-facing lines. */
 export const CORE_SOLID_FRAG = `
 ${UNIFORMS}
+${TWO_LIGHTS}
 
 varying float vDisp;
 varying vec3  vNormalW;
@@ -154,7 +190,10 @@ varying vec3  vViewDir;
 
 void main() {
   float fresnel = pow(1.0 - clamp(dot(vNormalW, vViewDir), 0.0, 1.0), 2.6);
-  vec3 color = uPhosphor * (fresnel * 0.11 + smoothstep(0.1, 1.0, vDisp) * 0.025);
+  // Same two-source treatment as the wireframe, an order of magnitude
+  // dimmer — the shell reads as tinted shadow, so the color under the
+  // wireframe agrees with the lines on top of it instead of fighting them.
+  vec3 color = twoLightColor(vNormalW, 0.35) * (fresnel * 0.11 + smoothstep(0.1, 1.0, vDisp) * 0.025);
   gl_FragColor = vec4(color, 1.0);
 }
 `;
@@ -181,16 +220,20 @@ void main() {
 
   // Orbit speed is the direct "increase particle velocity" link: mouse and
   // scroll energy spin the halo faster, scroll direction biases which way.
-  float speed = 0.06 + (uInteraction - 1.0) * 0.16 + uBands.x * 0.10;
-  vec3 p = rotateY(t * speed + aSeed * 6.283 + uScroll * 0.6) * position;
+  // Tuned down across the board (base, interaction gain, band gain, scroll
+  // bias) — the halo should read as drifting, not swarming.
+  float speed = 0.035 + (uInteraction - 1.0) * 0.085 + uBands.x * 0.05;
+  vec3 p = rotateY(t * speed + aSeed * 6.283 + uScroll * 0.35) * position;
 
-  // Slow noise drift so the shell breathes instead of sitting rigid.
+  // Slow noise drift so the shell breathes instead of sitting rigid. Both
+  // the rate and the excursion are pulled back so individual sparks trace
+  // a legible path instead of jittering in place.
   vec3 drift = vec3(
-    snoise(p * 0.34 + vec3(t * 0.12, 0.0, 0.0)),
-    snoise(p * 0.34 + vec3(0.0, t * 0.12, 40.0)),
-    snoise(p * 0.34 + vec3(0.0, 0.0, t * 0.12 + 80.0))
+    snoise(p * 0.34 + vec3(t * 0.07, 0.0, 0.0)),
+    snoise(p * 0.34 + vec3(0.0, t * 0.07, 40.0)),
+    snoise(p * 0.34 + vec3(0.0, 0.0, t * 0.07 + 80.0))
   );
-  p += drift * (0.28 + uBands.y * 0.55);
+  p += drift * (0.22 + uBands.y * 0.32);
 
   // Click pushes the whole halo outward, then it settles back.
   p *= 1.0 + uBurst * 0.34 + (uEnergy - 1.0) * 0.12;
@@ -220,9 +263,13 @@ void main() {
   if (d > 0.5) discard;
   float alpha = smoothstep(0.5, 0.0, d);
 
-  // A minority of sparks run white-hot, the rest stay phosphor — keeps the
-  // halo from flattening into one solid color.
-  vec3 color = mix(uPhosphor, vec3(1.0), step(0.88, vSeed) * 0.6);
+  // The halo is split between the two lights rather than tinted by one:
+  // each spark commits to the key or the fill by seed, so the cloud itself
+  // carries both colors and the eye does the mixing where they overlap.
+  // A minority still run white-hot on top of that, which keeps the halo
+  // from flattening into two solid bands.
+  vec3 base = mix(uPhosphor, uPhosphorB, step(0.5, fract(vSeed * 7.13)));
+  vec3 color = mix(base, vec3(1.0), step(0.88, vSeed) * 0.6);
   gl_FragColor = vec4(color * vGlow, alpha * 0.55);
 }
 `;
@@ -277,6 +324,11 @@ void main() {
   float glow = signal * (0.022 + uBands.z * 0.028 + (uInteraction - 1.0) * 0.010) * vignette
              + pointerGlow * vignette;
 
-  gl_FragColor = vec4(uPhosphor * glow * scan, 1.0);
+  // The field leans key-colored on one side and fill-colored on the other,
+  // with the flow noise deciding where the boundary actually falls — so the
+  // two lights bleed into each other across the backdrop instead of meeting
+  // on a straight vertical seam.
+  vec3 fieldColor = mix(uPhosphor, uPhosphorB, clamp(uv.x * 0.9 + signal * 0.3 + 0.05, 0.0, 1.0));
+  gl_FragColor = vec4(fieldColor * glow * scan, 1.0);
 }
 `;
