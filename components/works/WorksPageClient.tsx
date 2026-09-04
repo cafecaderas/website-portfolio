@@ -8,6 +8,9 @@ import { worksPageContent, workFilters } from "@/lib/content/works";
 import { WorksTable } from "./WorksTable";
 import { FeaturedCaseStudy } from "./FeaturedCaseStudy";
 import { Reveal } from "@/components/chrome/Reveal";
+import { SpectrumBands } from "@/components/decor/SpectrumBands";
+import { SignalPath } from "@/components/decor/SignalPath";
+import { ChromaWall } from "@/components/decor/ChromaWall";
 
 type FilterKey = MainCategory | "all";
 
@@ -65,6 +68,16 @@ export function WorksPageClient({ projects }: { projects: IndexedProject[] }) {
             <div style={{ marginTop: 46 }}>
               <FeaturedCaseStudy />
             </div>
+          </Reveal>
+
+          <Reveal>
+            <SpectrumBands />
+          </Reveal>
+          <Reveal>
+            <SignalPath />
+          </Reveal>
+          <Reveal>
+            <ChromaWall />
           </Reveal>
         </div>
       </section>

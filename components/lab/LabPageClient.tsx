@@ -8,6 +8,9 @@ import { labPageContent, labFilters } from "@/lib/content/lab";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { LabModuleGrid } from "./LabModuleGrid";
 import { Reveal } from "@/components/chrome/Reveal";
+import { AuroraField } from "@/components/decor/AuroraField";
+import { PatchMatrix } from "@/components/decor/PatchMatrix";
+import { SonarSweep } from "@/components/decor/SonarSweep";
 
 type FilterKey = SubTag | "all";
 
@@ -62,6 +65,16 @@ export function LabPageClient({ projects, liveMeta }: LabPageClientProps) {
               isHidden={(p) => active !== "all" && !p.core.tags?.includes(active)}
             />
           </div>
+        </Reveal>
+
+        <Reveal>
+          <AuroraField />
+        </Reveal>
+        <Reveal>
+          <PatchMatrix />
+        </Reveal>
+        <Reveal>
+          <SonarSweep />
         </Reveal>
 
         <div style={{ height: "clamp(46px, 7vw, 88px)" }} />
