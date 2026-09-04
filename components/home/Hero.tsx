@@ -71,7 +71,7 @@ export function Hero() {
         </div>
       </div>
 
-      <TapeTransport />
+      {/* <TapeTransport /> */}
     </section>
   );
 }

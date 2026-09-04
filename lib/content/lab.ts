@@ -22,4 +22,12 @@ export const labFilters = [
   { key: "photo", label: "PHOTO" },
   { key: "design", label: "DESIGN" },
   { key: "ux-ui", label: "UX | UI" },
+  { key: "video", label: "VIDEO" },
+  { key: "animation", label: "ANIMATION" },
+  { key: "crm", label: "CRM" },
+  { key: "cms", label: "CMS" },
+  { key: "api", label: "API" },
+  { key: "3d", label: "3D" },
+  { key: "events", label: "EVENTS" },
+  { key: "operations", label: "OPERATIONS" },
 ] as const;

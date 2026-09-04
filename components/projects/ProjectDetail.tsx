@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTestimonialsForProject } from "@/lib/content/testimonials";
 import { formatTag } from "@/lib/content/types";
 import type { IndexedProject } from "@/lib/content/projects";
+import { AudioPlayerPlaceholder } from "@/components/audio/AudioPlayerPlaceholder";
 import { PlaceholderImage } from "@/components/chrome/PlaceholderImage";
 import { BlockRenderer } from "@/components/content/BlockRenderer";
 import { TestimonialStrip } from "@/components/testimonials/TestimonialStrip";
@@ -64,17 +65,23 @@ export function ProjectDetail({ project, collection, basePath, sectionLabel }: P
               ))}
             </div>
 
-            {core.link && (
-              <div style={{ marginTop: 22 }}>
-                <a className="btn solid" href={core.link} target="_blank" rel="noopener noreferrer">
-                  VISIT LIVE
-                </a>
+            {core.audioPlayer && (
+              <div style={{ maxWidth: 720 }}>
+                <AudioPlayerPlaceholder core={core} />
               </div>
             )}
 
             {core.cover && (
               <div className="project-media" style={{ marginTop: 26, maxWidth: 720 }}>
                 <PlaceholderImage src={core.cover.src} alt={core.cover.alt} sizes="(max-width: 720px) 100vw, 720px" />
+              </div>
+            )}
+            
+            {core.link && (
+              <div style={{ marginTop: 22 }}>
+                <a className="btn solid" href={core.link} target="_blank" rel="noopener noreferrer">
+                  VISIT LIVE
+                </a>
               </div>
             )}
 

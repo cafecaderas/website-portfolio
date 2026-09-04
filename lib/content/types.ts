@@ -5,7 +5,7 @@ export type ProjectSection = "works" | "lab";
  * a project is exactly one of these, like a nav tab, even though the real
  * engagement behind it might have touched more than one.
  */
-export type MainCategory = "web" | "apps" | "branding" | "marketing";
+export type MainCategory = "web" | "apps" | "branding" | "marketing" | "events";
 
 /**
  * Granular craft/technique tags — plural on purpose, unlike `category`. The
@@ -26,7 +26,11 @@ export type SubTag =
   | "cms"
   | "api"
   | "ai"
-  | "photo";
+  | "photo"
+  | "production"
+  | "events"
+  | "operations";
+
 
 const TAG_LABELS: Partial<Record<SubTag, string>> = {
   "ux-ui": "UX | UI",
@@ -44,6 +48,7 @@ export interface CoverImage {
 
 /** New medium => a new ContentBlock variant, never a new field on every project. */
 export type ContentBlock =
+  /** Plain paragraph. `[label](url)` inside `text` renders as an inline link — see BlockRenderer's `renderInlineLinks`. */
   | { type: "text"; text: string }
   | { type: "image"; src: string; alt: string; caption?: string }
   | { type: "video"; src: string; poster?: string; caption?: string }
@@ -77,6 +82,14 @@ export interface ProjectCore {
   status?: string;
   /** Drives the phosphor LED dot. Independent of `status` on purpose: a project can read ARCHIVE and still have a live demo up. */
   live?: boolean;
+  /**
+   * Opt-in placeholder audio-player widget on this project's detail page —
+   * a boolean, not real audio data, because most lab entries don't have a
+   * track wired up yet. A real, playable track belongs in `body` as an
+   * `audio` ContentBlock instead; this just reserves the visual slot ahead
+   * of that.
+   */
+  audioPlayer?: boolean;
 }
 
 export interface Project {

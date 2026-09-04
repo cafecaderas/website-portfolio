@@ -14,15 +14,16 @@ export const workFilters = [
   { key: "apps", label: "APPS" },
   { key: "branding", label: "BRANDING" },
   { key: "marketing", label: "MARKETING" },
+  { key: "events", label: "EVENTS" },
 ] as const;
 
 export const featuredCaseStudyContent = {
   /** Which project (by slug, from lib/content/projects.ts) this panel features. */
-  slug: "nocturne-studio",
-  chipLabel: "CASE STUDY 01",
+  slug: "cafe-caderas",
+  chipLabel: "PROJECT",
   /** Static display chips for this one handpicked feature — unrelated to a Project's own `tags`. */
-  labels: ["WEBSITE", "ART DIRECTION", "NEXT.JS", "2026"],
-  ctaLabel: "READ CASE STUDY →",
-  readouts: ["BOOKINGS +240%", "0.6s FIRST PAINT"],
-  scopeAmp: 0.4,
+  labels: ["AUDIO ENGINEERING", "ART DIRECTION", "DJ", "MIX & MASTER"],
+  ctaLabel: "FIND OUT MORE →",
+  readouts: ["DJ | PRODUCER", "MIX & MASTER"],
+  scopeAmp: 0.3,
 } as const;
