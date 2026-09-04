@@ -163,6 +163,15 @@ Note there's no `WorkProject`/`LabProject` split anymore — a single flat `Proj
 
 <!-- **SECRETS / KEYS:** TBD based on integrations. -->
 
+### SEO
+
+**Status: partially implemented.** See the **design6 — the SEO layer** Decisions Log entry below for what changed and why.
+
+- **Done:** distinct `<title>`/`<meta description>` per top-level route (Home/WORKS/LAB/ABOUT) via a title template on the root layout (`app/layout.tsx`) plus a `metadata` export on each section page; `metadataBase` set from `siteConfig.url`; `/sitemap.xml` (`app/sitemap.ts`) listing every real static route and every non-`test-*` project URL; `/robots.txt` (`app/robots.ts`) allowing everything except `/dev/`, pointing at the sitemap.
+- **Not yet — paused, on request:** per-project dynamic `<title>`/`<meta description>` (a `generateMetadata` in `app/works/[slug]/page.tsx` / `app/lab/[slug]/page.tsx` deriving from each project's own `core.title`/`core.description`). Until this lands, every individual project detail page still serves the same site-wide title/description as everything else.
+- **Not yet — pending a decision:** JSON-LD structured data (`Article`/`CreativeWork` schema per project) for rich-result eligibility. No OG/social preview image yet either (`metadataBase` is set so one can be added as a relative path later without extra config).
+- **Not yet — blocked on real deployment:** `siteConfig.url` (`https://www.cafecaderas.com`) is used as the canonical domain throughout, matching the existing `social.website.href` — this hasn't been verified against an actual live deployment of this codebase, so treat the sitemap/robots output as correct in shape, not yet confirmed in production.
+
 ## 06 — Ship It
 
 **Environments:** local / staging / production
@@ -351,6 +360,16 @@ The stated goal this pass: projects should be able to start in LAB and progress 
 - **New `formatTag()` (`lib/content/types.ts`)** — a small display-label lookup (currently just `ux-ui → "UX | UI"`) for tags shown as a standalone chip/badge. Hashtag-style lists (`#ux-ui`) deliberately skip it and use the raw slug instead — real hashtags don't have spaces either, so the two contexts want different formatting on purpose, not inconsistently.
 - **`npm run new:lab` now prompts for comma-separated tags** instead of a single discipline, validating each against the known list and requiring at least one valid tag — unknown entries are reported and dropped rather than silently accepted or rejected outright.
 - **A naming collision fixed in passing:** `featuredCaseStudyContent.tags` (a handful of static display chips for the one hand-picked homepage feature, e.g. `"WEBSITE"`, `"NEXT.JS"`) was renamed to `labels` — it predates this pass and had nothing to do with a `Project`'s own `tags`, but the shared name would have read as related. Different concept, now a different name.
+
+#### design6 — the SEO layer: distinct titles, sitemap.xml, robots.txt
+
+Auditing the site found every single page — Home, WORKS, LAB, ABOUT, and every individual project detail page — served the exact same `<title>`/`<meta description>` pair, because `app/layout.tsx` set them once, site-wide, and nothing overrode them per route. There was also no `sitemap.xml`, no `robots.txt`, and no structured data anywhere.
+
+- **`siteConfig.url`** (`lib/content/site.ts`) is new — a single canonical-domain constant (`https://www.cafecaderas.com`, matching the pre-existing `social.website.href`) reused by `metadataBase`, `sitemap.ts`, and `robots.ts` rather than the domain string being hardcoded three times.
+- **A title template, not four hardcoded titles.** `app/layout.tsx`'s `metadata.title` is now `{ default: siteConfig.title, template: "%s — CAFE CADERAS" }` plus `metadataBase: new URL(siteConfig.url)`. Each section page (`app/works/page.tsx`, `app/lab/page.tsx`, `app/about/page.tsx`) exports its own `metadata` with just a short `title` (`"WORKS"`, `"LAB"`, `"ABOUT + CONTACT"`) and a `description` pulled from that page's own existing content object (`worksPageContent.lede`, `labPageContent.lede`, `aboutPageContent.lede`) — Next composes the final `<title>` via the template, so there's no duplicated brand suffix to keep in sync by hand. Home has no `metadata` export of its own and inherits the layout's `default` — that default already *is* the brand identity string, so overriding it would just repeat it.
+- **Per-project dynamic metadata was scoped out and explicitly deferred, on request.** Every individual project detail page (`/works/[slug]`, `/lab/[slug]`) still serves the same title/description as its section index — `generateMetadata` deriving from each project's own `core.title`/`core.description` is a known next step, not forgotten.
+- **`app/sitemap.ts` / `app/robots.ts`** use Next's App Router file convention (a default-exported function, auto-served at `/sitemap.xml` / `/robots.txt` — no manual XML/text file to keep in sync). The sitemap lists the four static routes plus every real WORKS/LAB project URL, generated from `getWorkProjects()`/`getLabProjects()` — **`test-*` slugs are filtered out** (the scratch entries added earlier this session to preview each `ContentBlock` type; not real content, not meant to be indexed). `robots.ts` allows everything except `/dev/` (the component-gallery route, already gated behind a real `notFound()` outside development) and points at the sitemap.
+- **JSON-LD (`Article`/`CreativeWork` schema per project) was discussed and intentionally not built yet** — pending a decision on whether it's worth the added per-project maintenance surface before real content replaces the placeholder catalog. See **SEO** under §05 above for the current done/pending breakdown.
 
 ## Change Rule
 When requirements change, update this spec **before** changing the build.

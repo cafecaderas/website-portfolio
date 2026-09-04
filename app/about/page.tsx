@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { aboutPageContent } from "@/lib/content/about";
 import { getTestimonials } from "@/lib/content/testimonials";
 import { NowPastNext } from "@/components/about/NowPastNext";
@@ -6,6 +7,11 @@ import { CvTable } from "@/components/about/CvTable";
 import { ContactBlock } from "@/components/about/ContactBlock";
 import { TestimonialStrip } from "@/components/testimonials/TestimonialStrip";
 import { Reveal } from "@/components/chrome/Reveal";
+
+export const metadata: Metadata = {
+  title: "ABOUT + CONTACT",
+  description: aboutPageContent.lede,
+};
 
 export default function AboutPage() {
   return (
